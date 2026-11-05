@@ -1,0 +1,39 @@
+MISE EN PLACE (une seule fois, ~5 minutes)
+1. Créez un compte gratuit sur github.com, puis : « + » > New repository > nom : bollinger > Public > Create.
+2. « uploading an existing file » : glissez TOUT le contenu de ce dossier, y compris le dossier .github
+   (si le dossier caché pose problème : Add file > Create new file > nom « .github/workflows/update.yml » et collez le contenu).
+   Cliquez Commit changes.
+3. Settings > Actions > General > Workflow permissions > « Read and write permissions » > Save.
+4. Onglet Actions > « Mise à jour des cours » > Run workflow (génère data.js la première fois).
+5. Settings > Pages > Source : « Deploy from a branch », branche main, dossier / (root) > Save.
+   Après 1-2 minutes, votre page est à l'adresse : https://VOTRE-PSEUDO.github.io/bollinger/
+
+MISE À JOUR DE LA PAGE : remplacez index.html, assets_v3.json et fetch_data.py sur GitHub (Add file > Upload files).
+La modification de assets_v3.json relance automatiquement la mise à jour des cours.
+
+USAGE QUOTIDIEN : ouvrez l'adresse (mettez-la en favori). Les cours sont mis à jour automatiquement en semaine.
+Réglages dans assets_v3.json : "bucket" (actifs doublons : un seul retenu), "cap" (plafond de poids, ex. 0.10 = 10 %).
+
+SIGNAUX : BANDES DE BOLLINGER HEBDOMADAIRES (assets_v3.json, bloc "bollinger")
+- cours de clôture de chaque semaine (dernière séance de la semaine ; la semaine en cours est exclue).
+- bande milieu = moyenne mobile sur "periodes" semaines (défaut 20) ; bande haute = milieu + "ecartType" x écart-type (défaut 0,75).
+- ACHAT  : clôture > bande haute ET bande milieu croissante.
+- WATCH  : clôture entre la bande milieu et la bande haute (conserver, ne pas renforcer).
+- VENDRE : clôture < bande milieu OU bande milieu décroissante (VENDRE l'emporte sur les autres signaux).
+- il faut au moins 21 clôtures hebdomadaires, sinon « Historique insuffisant ».
+- actifs en USD : convertis en EUR (taux du jour de cotation) avant le calcul.
+- plus de score, ni de décision tactique, ni de répartition en % : seuls comptent les signaux.
+
+CANARIS (pour information uniquement)
+- les 2 graphiques canaris restent affichés mais ne pilotent plus aucun signal.
+
+PAGE
+- alerte en haut : actifs passés en VENDRE depuis la dernière date de décision et nouveaux ACHAT.
+- « Rotation offensive » : actifs en ACHAT et actifs nouvellement en VENDRE.
+- « Tous les actifs » : l'ensemble des actifs, triés ACHAT > WATCH > VENDRE.
+
+MODULE « GÉRER LES ACTIFS » (fin de page)
+- liste déroulante + bouton Supprimer ; formulaire d'ajout (ticker Yahoo, identifiant, nom, devise, catégorie, classe).
+- chaque modification télécharge un fichier assets_v3.json modifié (nom exact à conserver). Aucun jeton GitHub n'est nécessaire.
+- pour valider : GitHub > votre dépôt > Add file > Upload files > glisser assets_v3.json > Commit changes. La mise à jour des cours démarre seule.
+- si un ticker n'existe pas sur Yahoo, l'étape « Run python fetch_data.py » affiche « ECHEC <ticker> » ; on peut lister des tickers de secours dans "alt".

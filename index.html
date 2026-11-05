@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stratégie Bollinger – Données automatiques</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen">
+
+<header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md">
+<div class="max-w-7xl mx-auto flex flex-col xl:flex-row justify-between items-center gap-4">
+  <div class="flex items-center gap-3">
+    <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg"><i class="fa-solid fa-shield-halved text-xl"></i></div>
+    <div>
+      <h1 class="text-xl font-bold">Stratégie Canaris <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/30 ml-2">V3 · Décision 15j</span></h1>
+      <p class="text-xs text-slate-400">Données automatiques · tendance · momentum · accélération · force relative</p>
+    </div>
+  </div>
+  <div class="flex flex-wrap justify-center items-center gap-2 text-xs">
+    <button id="refreshBtn" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg font-semibold"><i class="fa-solid fa-rotate mr-1"></i> Actualiser</button>
+    <div class="bg-slate-900/60 px-3 py-2 rounded-lg border border-slate-700">
+      <span class="text-slate-400">Dernière mise à jour :</span> <span id="last-update">—</span>
+    </div>
+  </div>
+</div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-7 space-y-7">
+
+<section id="alert-box" class="hidden"></section>
+
+<section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<div class="flex flex-col md:flex-row justify-between gap-3 mb-4">
+  <div>
+    <h3 class="text-lg font-bold"><i class="fa-solid fa-kiwi-bird text-indigo-400 mr-2"></i>État des 2 canaris <span class="text-xs font-normal text-slate-400 ml-2">pour information : n'agit plus sur les signaux</span></h3>
+    <p class="text-xs text-slate-400 mt-1">Score 13612 = 12×1M + 4×3M + 2×6M + 1×12M, lissé sur 5 séances. Seul le signe détermine Vert/Rouge. Calcul dans la devise de cotation (sans conversion EUR), sur cours de clôture (séance en cours exclue).</p>
+  </div>
+  <div id="canary-summary" class="text-sm"></div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead class="text-xs uppercase text-slate-400 border-b border-slate-700">
+<tr><th class="py-3 px-3">Canari</th><th class="py-3 px-3 text-right">1M</th><th class="py-3 px-3 text-right">3M</th><th class="py-3 px-3 text-right">6M</th><th class="py-3 px-3 text-right">12M</th><th class="py-3 px-3 text-right">13612 brut</th><th class="py-3 px-3 text-right">Lissé 5j</th><th class="py-3 px-3 text-center">État</th><th class="py-3 px-3 text-center">Il y a 1 mois</th></tr>
+</thead>
+<tbody id="canary-body" class="divide-y divide-slate-700/60"></tbody>
+</table>
+</div>
+</section>
+
+<section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-chart-area text-indigo-400 mr-2"></i>Canaris · historique sur 12 mois</h3>
+<p class="text-xs text-slate-400 mt-1">Trait épais : score 13612 lissé sur 5 séances (c'est lui qui décide). Trait fin gris : score brut du jour. Vert au-dessus de 0, rouge en dessous. La bande du bas montre l'état séance par séance ; les points marquent les changements d'état. Survolez le graphique pour lire les valeurs.</p>
+<div id="canary-charts" class="grid xl:grid-cols-2 gap-5 mt-4"></div>
+</section>
+
+<section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<div class="flex flex-col lg:flex-row justify-between gap-4 mb-5">
+<div>
+<h3 class="text-lg font-bold"><i class="fa-solid fa-ranking-star text-indigo-400 mr-2"></i>Rotation offensive <span id="rotation-count" class="text-xs font-normal text-slate-400 ml-2"></span></h3>
+<p class="text-xs text-slate-400 mt-1">Seuls les actifs en <b class="text-emerald-300">ACHAT</b> et ceux dont le signal vient de passer à <b class="text-rose-300">VENDRE</b> sont affichés ; la liste complète figure plus bas. <span id="ref-decision-label"></span></p>
+</div>
+<div class="text-xs bg-slate-900/70 border border-slate-700 rounded-lg px-3 py-2">
+<b>Signal hebdomadaire :</b> bandes de Bollinger sur clôtures de semaine · <span id="bb-params">20 sem. · 0,75 σ</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="border-b border-slate-700 text-slate-400 text-xs uppercase">
+<tr>
+<th class="py-3 px-3">Actif</th><th class="py-3 px-3">Catégorie</th><th class="py-3 px-3 text-center">Signal</th>
+<th class="py-3 px-3 text-right">Clôture vs bande haute</th><th class="py-3 px-3 text-right">Bande milieu</th><th class="py-3 px-3 text-right">Depuis</th><th class="py-3 px-3">Action</th>
+</tr>
+</thead>
+<tbody id="asset-body" class="divide-y divide-slate-700/60"></tbody>
+</table>
+</div>
+<div class="mt-6 bg-slate-900/40 border border-slate-700 rounded-xl p-4">
+<h4 class="text-sm font-semibold text-slate-300">Tous les actifs testés (<span id="all-count">0</span>)</h4>
+<div class="overflow-x-auto mt-3"><table class="w-full text-left text-sm">
+<thead class="text-xs uppercase text-slate-400 border-b border-slate-700"><tr><th class="py-2 px-3">#</th><th class="py-2 px-3">Catégorie</th><th class="py-2 px-3">Actif</th><th class="py-2 px-3 text-center">Signal</th><th class="py-2 px-3 text-right">Clôture vs haute</th><th class="py-2 px-3 text-right">Milieu</th><th class="py-2 px-3 text-right">Depuis</th><th class="py-2 px-3">Statut</th></tr></thead>
+<tbody id="all-body" class="divide-y divide-slate-800"></tbody></table></div>
+<div id="all-errors"></div>
+</div>
+</section>
+
+<section id="products-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-piggy-bank text-indigo-400 mr-2"></i>Produits recommandés · capitalisation · frais les plus bas</h3>
+<p class="text-xs text-slate-400 mt-1">Pour les actifs retenus dans votre versement. TER = frais annuels. Relevés juillet–octobre 2026 (émetteurs, justETF, presse spécialisée) : les sources divergent parfois de quelques centièmes — vérifiez le DIC/KID avant tout achat. Information générale, pas un conseil en investissement personnalisé.</p>
+<div id="products-body" class="grid lg:grid-cols-2 gap-4 mt-5"></div>
+</section>
+
+<section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-chart-line text-indigo-400 mr-2"></i>Répartition des signaux</h3>
+<p class="text-xs text-slate-400 mt-1">Cours normalisés en EUR pour les actifs cotés en USD. Signaux calculés sur les clôtures de semaine terminées.</p>
+<div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5">
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">ACHAT</div><div id="n-buy" class="text-2xl font-bold text-emerald-400">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">WATCH</div><div id="n-watch" class="text-2xl font-bold text-amber-400">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">VENDRE</div><div id="n-sell" class="text-2xl font-bold text-rose-400">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Données disponibles</div><div id="data-status" class="text-2xl font-bold">—</div></div>
+</div>
+</section>
+
+<section class="bg-amber-950/20 border border-amber-500/30 rounded-2xl p-5">
+<h3 class="font-bold text-amber-300"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Lecture du signal</h3>
+<p class="text-sm text-slate-300 mt-2">
+Bandes de Bollinger calculées sur les <b>clôtures de semaine</b> (dernière séance de chaque semaine ; la semaine en cours n'est pas prise en compte) : milieu = moyenne mobile des <span id="bb-n">20</span> dernières clôtures, bandes = milieu ± <span id="bb-k">0,75</span> écart-type (écart-type de la population).<br>
+<b class="text-emerald-300">ACHAT</b> = la clôture de semaine est au-dessus de la bande haute <u>et</u> la bande milieu est croissante.<br>
+<b class="text-amber-300">WATCH</b> = la clôture est entre la bande milieu et la bande haute (on conserve, on n'achète pas).<br>
+<b class="text-rose-300">VENDRE</b> = la clôture est sous la bande milieu <u>ou</u> la bande milieu est décroissante (ce critère prime sur les deux autres).<br>
+« Depuis » = nombre de semaines pendant lesquelles le signal actuel est en place. Une alerte rouge signale un actif qui est passé à VENDRE depuis la décision précédente ; « NOUVEAU » signale un passage à ACHAT.
+</p>
+</section>
+
+<section id="manage-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-sliders text-indigo-400 mr-2"></i>Gérer les actifs suivis</h3>
+<p class="text-xs text-slate-400 mt-1">Ajoute ou retire un actif de la liste. À chaque modification, la page produit un fichier <span class="font-mono">assets_v3.json</span> modifié, <b>téléchargé sur votre ordinateur</b> : vous le déposez ensuite vous-même dans GitHub, qui récupère alors automatiquement les cours.</p>
+<div class="grid lg:grid-cols-2 gap-5 mt-5">
+  <div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4">
+    <div class="font-semibold text-slate-200 mb-3"><i class="fa-solid fa-trash-can text-rose-400 mr-2"></i>Supprimer un actif</div>
+    <label class="text-xs text-slate-400" for="mg-del">Actif à retirer de la liste</label>
+    <select id="mg-del" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></select>
+    <button id="mg-del-btn" type="button" class="mt-3 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-trash-can mr-1"></i>Supprimer</button>
+    <div class="text-xs text-slate-500 mt-3">L'actif n'est plus suivi ni calculé. Les deux canaris ne peuvent pas être supprimés ici.</div>
+  </div>
+  <div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4">
+    <div class="font-semibold text-slate-200 mb-3"><i class="fa-solid fa-circle-plus text-emerald-400 mr-2"></i>Ajouter un actif</div>
+    <div class="grid sm:grid-cols-2 gap-3 text-sm">
+      <div><label class="text-xs text-slate-400" for="mg-ticker">Ticker Yahoo Finance *</label>
+        <input id="mg-ticker" type="text" placeholder="ex. VWCE.DE, NVDA, BTC-USD" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
+      <div><label class="text-xs text-slate-400" for="mg-id">Identifiant court *</label>
+        <input id="mg-id" type="text" placeholder="ex. VWCE" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 font-mono"></div>
+      <div class="sm:col-span-2"><label class="text-xs text-slate-400" for="mg-name">Nom affiché *</label>
+        <input id="mg-name" type="text" placeholder="ex. Vanguard FTSE All-World – VWCE" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
+      <div><label class="text-xs text-slate-400" for="mg-cur">Devise de cotation</label>
+        <select id="mg-cur" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"><option value="EUR">EUR</option><option value="USD">USD (converti en EUR)</option></select></div>
+      <div><label class="text-xs text-slate-400" for="mg-cat">Catégorie</label>
+        <select id="mg-cat" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></select></div>
+      <div><label class="text-xs text-slate-400" for="mg-class">Classe d'actifs (un seul actif acheté par classe)</label>
+        <select id="mg-class" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></select></div>
+      <div id="mg-newclass-box" class="hidden"><label class="text-xs text-slate-400" for="mg-newclass">Nom de la nouvelle classe</label>
+        <input id="mg-newclass" type="text" placeholder="ex. Santé" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
+      <label class="sm:col-span-2 flex items-center gap-2 text-xs text-slate-400"><input id="mg-us" type="checkbox"> ETF coté aux États-Unis (en principe non accessible aux particuliers de l'UE : sert de signal)</label>
+    </div>
+    <button id="mg-add-btn" type="button" class="mt-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-circle-plus mr-1"></i>Ajouter l'actif</button>
+    <div class="text-xs text-slate-500 mt-3">La catégorie sert à regrouper les actifs à l'affichage. Le ticker doit exister sur Yahoo Finance : sinon l'actif apparaîtra avec « Pas de cours ».</div>
+  </div>
+</div>
+<div id="mg-pending" class="hidden"></div>
+<div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4 mt-5">
+  <div class="font-semibold text-slate-200 mb-2"><i class="fa-brands fa-github mr-2"></i>Comment valider la modification sur GitHub</div>
+  <ol class="list-decimal pl-5 space-y-1 text-xs text-slate-400">
+    <li>Le fichier <span class="font-mono text-slate-300">assets_v3.json</span> se télécharge automatiquement. Son nom doit rester exactement celui-ci : si votre navigateur ajoute « (1) », renommez-le.</li>
+    <li>Sur GitHub, ouvrez votre dépôt › <b>Add file</b> › <b>Upload files</b>, glissez le fichier, puis <b>Commit changes</b> : il remplace l'ancien.</li>
+    <li>La mise à jour des cours démarre seule (onglet Actions). La page affiche la nouvelle liste 1 à 2 minutes plus tard ; un nouvel actif indique « Pas de cours » jusqu'à la fin du traitement.</li>
+  </ol>
+</div>
+<div id="mg-msg" class="hidden"></div>
+</section>
+
+</main>
+
+<footer class="border-t border-slate-700 bg-slate-800 py-5 text-center text-xs text-slate-500">
+V3 — Données historiques Yahoo Finance · aucun ordre n'est exécuté automatiquement · décision à prendre tous les 15 jours · ceci n'est pas un conseil en investissement.
+</footer>
+
+<script>
+const YAHOO = "https://query1.finance.yahoo.com/v8/finance/chart/";
+const FX_TICKER = "EURUSD=X";
+let CONFIG = {"version": "3.0", "source": "Yahoo Finance Chart API", "refreshHours": 6, "historyRange": "2y", "decisionIntervalDays": 15, "decisionAnchor": "2026-10-01", "canaries": [{"id": "EM", "ticker": "VFEA.DE", "name": "Émergents", "currency": "EUR", "role": "canary"}, {"id": "TIPS", "ticker": "IDTP.L", "name": "US TIPS", "currency": "USD", "role": "canary"}], "offensive": [{"id": "CW8", "ticker": "CW8.PA", "name": "MSCI World – Amundi CW8", "currency": "EUR"}, {"id": "SP500", "ticker": "SPYL.DE", "name": "S&P 500 – SPDR SPYL", "currency": "EUR"}, {"id": "PAASI", "ticker": "PAASI.PA", "name": "Asie émergente – Amundi PAASI", "currency": "EUR"}, {"id": "GOLD", "ticker": "XAU-EUR", "name": "Or – cours spot EUR (proxy)", "currency": "EUR", "proxy": true}, {"id": "COMO", "ticker": "COMO.PA", "name": "Matières premières – Amundi COMO", "currency": "EUR"}, {"id": "BTC", "ticker": "BTC-EUR", "name": "Bitcoin EUR", "currency": "EUR"}, {"id": "IEUS", "ticker": "IEUS", "name": "MSCI Europe Small Cap – iShares IEUS", "currency": "USD"}, {"id": "GDX", "ticker": "GDX", "name": "Gold Miners – VanEck GDX", "currency": "USD"}]};
+let refreshing = false;
+
+const $ = id => document.getElementById(id);
+const fmt = v => `${v>=0?'+':''}${v.toFixed(1)}%`;
+const clamp = (v,a=0,b=100) => Math.max(a,Math.min(b,v));
+
+function avg(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : NaN; }
+function ma(a,n){ return a.length<n ? NaN : avg(a.slice(-n)); }
+function pct(a,n){ return a.length<=n ? NaN : 100*(a[a.length-1]/a[a.length-1-n]-1); }
+function slopePct(a,n){
+  if(a.length<n+1) return NaN;
+  const x0=a[a.length-1-n], x1=a[a.length-1];
+  return 100*(x1/x0-1);
+}
+function percentile(vals,v){
+  const x=vals.filter(Number.isFinite).sort((a,b)=>a-b);
+  if(!x.length || !Number.isFinite(v)) return 50;
+  let k=0; for(const z of x) if(z<v) k++;
+  return x.length===1 ? 50 : 100*k/(x.length-1);
+}
+function daysAgo(sec){ return Math.floor(Date.now()/1000)-sec; }
+
+// --- Données : data.js est régénéré automatiquement chaque jour (GitHub Actions, voir LISEZMOI.txt)
+let BATCH=null, DATA_DATE=null;
+function loadData(){
+  return new Promise(res=>{
+    const sc=document.createElement("script");
+    sc.src="data.js?v="+Date.now();
+    sc.onload=async()=>{
+      const Q=window.QUOTES;
+      if(Q&&Q.data){
+        BATCH=Q.data; DATA_DATE=Q.updated;
+        if(Q.config&&Array.isArray(Q.config.offensive)&&Array.isArray(Q.config.canaries)) CONFIG=Q.config;   // repli
+      }
+      try{   // liste d'actifs : assets_v3.json lu directement (à jour dès son déploiement, même avant les nouveaux cours)
+        const r=await fetch("assets_v3.json?v="+Date.now(),{cache:"no-store"});
+        if(r.ok){ const c=await r.json(); if(Array.isArray(c.offensive)&&Array.isArray(c.canaries)) CONFIG=c; }
+      }catch(e){}
+      if(window.__cfgOverride) CONFIG=window.__cfgOverride;   // modification faite dans cette session : Pages peut encore servir l'ancien fichier
+      sc.remove(); res(!!BATCH);
+    };
+    sc.onerror=()=>{sc.remove();res(false);};
+    document.head.appendChild(sc);
+  });
+}
+
+async function yahoo(ticker){
+  const b=BATCH&&BATCH[ticker];
+  if(!b||b.error||!b.series) throw new Error(ticker+" : "+((b&&b.error)||"absent de data.js"));
+  const o=b.series.map(([t,p])=>({t,p}));
+  // cours de clôture uniquement : on écarte la séance du jour (cours intraday qui change à chaque mise à jour)
+  const today=new Date().toISOString().slice(0,10);
+  if(o.length && new Date(o[o.length-1].t*1000).toISOString().slice(0,10)===today) o.pop();
+  if(o.length<210) throw new Error(ticker+" : seulement "+o.length+" séances");
+  return o;
+}
+
+async function loadSeries(item, fx){
+  const s=await yahoo(item.ticker);
+  // Convert USD quoted assets to EUR: USD price / EURUSD.
+  // For USD assets we fetch the same-date EURUSD series.
+  if(item.currency==="USD" && item.role!=="canary" && item.convert!==false){   // les canaris restent dans leur devise de cotation
+    // taux EUR/USD « as-of » : dernier cours connu à l'instant de chaque séance (les cours EUR/USD sont horodatés à 23h00 UTC en été :
+    // une jointure sur la date exacte supprimait toutes les séances du vendredi)
+    const fxs=fx.slice().sort((a,b)=>a.t-b.t);
+    const converted=[]; let j=-1;
+    for(const d of s){
+      while(j+1<fxs.length && fxs[j+1].t<=d.t) j++;
+      if(j>=0 && fxs[j].p>0 && d.t-fxs[j].t<5*86400) converted.push({t:d.t,p:d.p/fxs[j].p});
+    }
+    return converted;
+  }
+  return s;
+}
+
+function metrics(s){
+  const p=s.map(x=>x.p);
+  const last=p[p.length-1];
+  const mm50=ma(p,50), mm200=ma(p,200);
+  const r1=pct(p,21), r3=pct(p,63), r6=pct(p,126), r12=pct(p,252);
+  const raw=12*r1+4*r3+2*r6+r12;
+  const prev3=p.length>84 ? 100*(p[p.length-22]/p[p.length-64]-1) : NaN;
+  const prev6=p.length>147 ? 100*(p[p.length-22]/p[p.length-127]-1) : NaN;
+  // Acceleration: recent 1M vs average monthly pace of 3M, then 3M vs 6M.
+  const acc=0.65*(r1-r3/3)+0.35*(r3/3-r6/6);
+  const mm50Slope=slopePct(p.slice(0,-1),20);
+  const mm200Slope=slopePct(p.slice(0,-1),60);
+  const dd20=100*(last/Math.max(...p.slice(-63))-1);
+  const trendRaw =
+    (last>mm50?30:0) +
+    (last>mm200?35:0) +
+    (mm50>mm200?25:0) +
+    (mm50Slope>0?5:0) +
+    (mm200Slope>0?5:0);
+  const confirmed = last>mm200 && mm50>mm200 && r1>0 && r3>0 && mm50Slope>0;
+  return {last,mm50,mm200,r1,r3,r6,r12,raw,acc,mm50Slope,mm200Slope,dd20,trendRaw,confirmed};
+}
+
+function canaryScore(s){
+  const p=s.map(x=>x.p), n=p.length;
+  const ret=(i,k)=>100*(p[i]/p[i-k]-1);
+  const hist=[];
+  for(let i=252;i<n;i++) hist.push({t:s[i].t,raw:12*ret(i,21)+4*ret(i,63)+2*ret(i,126)+ret(i,252)});
+  const band=CONFIG.canaryBand||0;      // bande morte : on ne change d'état que si |score lissé| > band
+  let state=null;
+  hist.forEach((h,j)=>{
+    h.smooth=avg(hist.slice(Math.max(0,j-4),j+1).map(x=>x.raw));
+    if(state===null) state=h.smooth>=0?"VERT":"ROUGE";
+    else if(h.smooth>band) state="VERT";
+    else if(h.smooth<-band) state="ROUGE";
+    h.state=state;
+  });
+  const last=hist[hist.length-1];
+  return {r1:pct(p,21),r3:pct(p,63),r6:pct(p,126),r12:pct(p,252),raw:last?last.raw:NaN,smooth:last?last.smooth:NaN,state:last?last.state:null,hist};
+}
+
+// ───────── graphique SVG des canaris ─────────
+function canaryChartHtml(z,uid){
+  const H=z.c.hist.slice(-252); if(H.length<2) return '<div class="text-sm text-slate-400">Historique insuffisant.</div>';
+  const W=900,HT=240,pl=46,pr=10,pt=12,pb=36, n=H.length;
+  const xs=i=>pl+(W-pl-pr)*i/(n-1);
+  const vals=H.flatMap(h=>[h.smooth,h.raw]); let lo=Math.min(0,...vals), hi=Math.max(0,...vals);
+  const pad=(hi-lo)*0.08||1; lo-=pad; hi+=pad;
+  const ys=v=>pt+(HT-pt-pb)*(1-(v-lo)/(hi-lo)), y0=ys(0), yb=HT-pb;
+  const line=k=>H.map((h,i)=>`${i?"L":"M"}${xs(i).toFixed(1)},${ys(h[k]).toFixed(1)}`).join(" ");
+  const S=line("smooth"), R=line("raw");
+  const area=`${S} L${xs(n-1).toFixed(1)},${y0.toFixed(1)} L${xs(0).toFixed(1)},${y0.toFixed(1)} Z`;
+  const G="#34d399", RD="#fb7185";
+  let strip="", flips=[], prev=null, ticks="", lastMonth=null;
+  const step=(W-pl-pr)/(n-1);
+  H.forEach((h,i)=>{
+    strip+=`<rect x="${(xs(i)-step/2).toFixed(1)}" y="${yb+6}" width="${(step+0.6).toFixed(1)}" height="8" fill="${h.state==="VERT"?G:RD}" opacity="0.85"/>`;
+    if(prev&&prev!==h.state) flips.push({i,h});
+    prev=h.state;
+    const d=new Date(h.t*1000), m=d.getUTCFullYear()*12+d.getUTCMonth();
+    if(m!==lastMonth){ lastMonth=m; if(i>3) ticks+=`<line x1="${xs(i)}" x2="${xs(i)}" y1="${pt}" y2="${yb}" stroke="#334155" stroke-width="0.6"/><text x="${xs(i)}" y="${HT-6}" fill="#94a3b8" font-size="11" text-anchor="middle">${d.toLocaleDateString("fr-FR",{month:"short",timeZone:"UTC"})}</text>`; }
+  });
+  const dots=flips.map(f=>`<circle cx="${xs(f.i).toFixed(1)}" cy="${ys(f.h.smooth).toFixed(1)}" r="4" fill="${f.h.state==="VERT"?G:RD}" stroke="#0f172a" stroke-width="1.5"/>`).join("");
+  const yt=[lo+pad,0,hi-pad].map(v=>`<text x="${pl-6}" y="${ys(v)+4}" fill="#94a3b8" font-size="11" text-anchor="end">${v.toFixed(0)}</text>`).join("");
+  const band=CONFIG.canaryBand||0;
+  const bandLines=band>0?[band,-band].map(v=>`<line x1="${pl}" x2="${W-pr}" y1="${ys(v)}" y2="${ys(v)}" stroke="#fbbf24" stroke-dasharray="2 4" stroke-width="1"/>`).join(""):"";
+  const lastFlip=flips.length?flips[flips.length-1]:null;
+  const cur=H[n-1];
+  return `<div>
+    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+      <div class="font-bold">${z.x.name} <span class="text-slate-500 text-xs">${z.x.ticker}</span></div>
+      <div class="text-xs"><span class="font-bold ${cur.state==="VERT"?"text-emerald-400":"text-rose-400"}">${cur.state}</span> · lissé ${cur.smooth.toFixed(1)} · ${flips.length} changement(s) d'état sur 12 mois${lastFlip?` · dernier : ${new Date(lastFlip.h.t*1000).toLocaleDateString("fr-FR")}`:""}</div>
+    </div>
+    <svg id="${uid}" viewBox="0 0 ${W} ${HT}" class="w-full h-auto bg-slate-900/50 rounded-lg" role="img" aria-label="Score du canari ${z.x.name} sur 12 mois">
+      <defs><clipPath id="${uid}a"><rect x="0" y="0" width="${W}" height="${y0.toFixed(1)}"/></clipPath><clipPath id="${uid}b"><rect x="0" y="${y0.toFixed(1)}" width="${W}" height="${HT}"/></clipPath></defs>
+      ${ticks}${yt}
+      <path d="${area}" fill="${G}" opacity="0.18" clip-path="url(#${uid}a)"/><path d="${area}" fill="${RD}" opacity="0.18" clip-path="url(#${uid}b)"/>
+      <line x1="${pl}" x2="${W-pr}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="#cbd5e1" stroke-dasharray="4 4" stroke-width="1"/>${bandLines}
+      <path d="${R}" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.7"/>
+      <path d="${S}" fill="none" stroke="${G}" stroke-width="2.4" clip-path="url(#${uid}a)"/><path d="${S}" fill="none" stroke="${RD}" stroke-width="2.4" clip-path="url(#${uid}b)"/>
+      ${dots}${strip}
+      <line id="${uid}x" x1="0" x2="0" y1="${pt}" y2="${yb}" stroke="#e2e8f0" stroke-width="1" visibility="hidden"/>
+      <g id="${uid}t" visibility="hidden"><rect x="0" y="0" width="212" height="54" rx="6" fill="#0f172a" stroke="#475569"/><text id="${uid}t1" x="8" y="16" fill="#e2e8f0" font-size="12" font-weight="bold"></text><text id="${uid}t2" x="8" y="32" fill="#cbd5e1" font-size="11"></text><text id="${uid}t3" x="8" y="47" fill="#cbd5e1" font-size="11"></text></g>
+      <rect id="${uid}o" x="${pl}" y="${pt}" width="${W-pl-pr}" height="${yb-pt}" fill="transparent"/>
+    </svg></div>`;
+}
+function bindCanaryHover(z,uid){
+  const H=z.c.hist.slice(-252), svg=document.getElementById(uid); if(!svg||H.length<2) return;
+  const W=900,pl=46,pr=10,n=H.length, g=k=>document.getElementById(uid+k);
+  g("o").addEventListener("mousemove",e=>{
+    const r=svg.getBoundingClientRect(), x=(e.clientX-r.left)/r.width*W;
+    const i=Math.max(0,Math.min(n-1,Math.round((x-pl)/(W-pl-pr)*(n-1)))), h=H[i], px=pl+(W-pl-pr)*i/(n-1);
+    g("x").setAttribute("x1",px); g("x").setAttribute("x2",px); g("x").setAttribute("visibility","visible");
+    g("t1").textContent=new Date(h.t*1000).toLocaleDateString("fr-FR"); g("t2").textContent=`lissé ${h.smooth.toFixed(1)} · brut ${h.raw.toFixed(1)}`; g("t3").textContent=`état : ${h.state}`;
+    const tx=px>W/2?px-220:px+8; g("t").setAttribute("transform",`translate(${tx},16)`); g("t").setAttribute("visibility","visible");
+  });
+  g("o").addEventListener("mouseleave",()=>{ g("x").setAttribute("visibility","hidden"); g("t").setAttribute("visibility","hidden"); });
+}
+function drawCanaryCharts(cur){
+  const box=$("canary-charts");
+  box.innerHTML=cur.canaries.map((z,i)=>canaryChartHtml(z,"cc"+i)).join("");
+  cur.canaries.forEach((z,i)=>bindCanaryHover(z,"cc"+i));
+}
+
+async function refresh(force){
+  if(refreshing)return;
+  refreshing=true;
+  $("last-update").textContent="chargement…";
+  $("data-status").textContent="…";
+  try{
+    if(!await loadData()) throw new Error("data.js introuvable : les cours n'ont pas encore été générés (onglet Actions du dépôt GitHub > Run workflow).");
+    const all=[...(CONFIG.canaries||[]),...(CONFIG.offensive||[])];
+    const fx=await yahoo(FX_TICKER);
+    const results=[];
+    for(let i=0;i<all.length;i+=3){
+      results.push(...await Promise.allSettled(all.slice(i,i+3).map(x=>loadSeries(x,fx))));
+    }
+    const records=[];
+    for(let i=0;i<all.length;i++){
+      const item=all[i], res=results[i];
+      if(res.status==="fulfilled"){
+        records.push({...item,series:res.value});
+      }else{
+        records.push({...item,error:res.reason?.message||"erreur"});
+      }
+    }
+    render(records);
+    const ok=records.filter(x=>x.series).length;
+    { const lu=$("last-update"), ageH=DATA_DATE?(Date.now()-new Date(DATA_DATE).getTime())/3600000:0, stale=ageH>96;   // plus de 4 jours : week-end et jours fériés exclus
+      lu.textContent=(DATA_DATE?new Date(DATA_DATE).toLocaleString("fr-FR"):"—")+(stale?" ⚠ cours anciens":"");
+      lu.className=stale?"text-rose-400 font-bold":"";
+      lu.title=stale?"Les cours n'ont pas été rafraîchis depuis plus de 4 jours : consultez l'onglet Actions du dépôt GitHub.":""; }
+    $("data-status").textContent=`${ok}/${records.length}`;
+  }catch(e){
+    $("last-update").textContent="ERREUR";
+    $("data-status").textContent="Erreur";
+    alert("Impossible de charger les données : "+e.message);
+  }finally{refreshing=false;}
+}
+
+// ───────── Classes, catégories (affichage) ─────────
+const DEFAULT_CLASS={CW8:"EQ_DEV",SP500:"EQ_DEV",PAASI:"EM_ASIA",GOLD:"GOLD",COMO:"COMMO",BTC:"BTC",IEUS:"EQ_SMALL_EU",GDX:"GOLD_MINERS"};
+const DEFAULT_CLASS_LABEL={EQ_DEV:"Actions développées (monde / US)",EM_ASIA:"Émergents Asie",GOLD:"Or",COMMO:"Matières premières",BTC:"Bitcoin",EQ_SMALL_EU:"Petites caps Europe",GOLD_MINERS:"Mines d'or"};
+const classOf=x=>x.class??DEFAULT_CLASS[x.id]??x.id;
+const classLabel=c=>(CONFIG.classes&&CONFIG.classes[c])||DEFAULT_CLASS_LABEL[c]||c;
+const DEFAULT_CATEGORY={CW8:"ACT_DEV",SP500:"ACT_DEV",PAASI:"ACT_SEC",IEUS:"ACT_SEC",GOLD:"OR",GDX:"OR_SEC",COMO:"MP",BTC:"BTC"};
+const DEFAULT_CATS={ACT_DEV:{label:"Actions développées (monde / US)",short:"Actions développées"},ACT_SEC:{label:"Actions secondaires dynamiques",short:"Actions secondaires"},OR:{label:"Or",short:"Or"},OR_SEC:{label:"Or secondaire dynamique",short:"Or secondaire"},MP:{label:"Matières premières",short:"Matières premières"},MP_SEC:{label:"Matières premières secondaires dynamiques",short:"Mat. premières second."},OBLIG:{label:"Obligations",short:"Obligations"},BTC:{label:"Bitcoin",short:"Bitcoin"}};
+const cats=()=>(CONFIG.categories&&Object.keys(CONFIG.categories).length)?CONFIG.categories:DEFAULT_CATS;   // la liste du fichier fait foi
+const catOf=x=>x.category??DEFAULT_CATEGORY[x.id]??"AUTRE";
+const catInfo=c=>cats()[c]||{label:c,short:c};
+const isCanary=id=>(CONFIG.canaries||[]).some(c=>c.id===id);
+const isOff=id=>(CONFIG.offensive||[]).some(c=>c.id===id);
+const fdate=d=>d.toLocaleDateString("fr-FR");
+const sp=(v,d=1)=>(v>=0?"+":"")+v.toFixed(d).replace(".",",")+" %";
+
+// ───────── Signal : bandes de Bollinger sur clôtures de semaine ─────────
+const BB=()=>({n:(CONFIG.bollinger&&CONFIG.bollinger.periodes)||20,k:(CONFIG.bollinger&&CONFIG.bollinger.ecartType)||0.75});
+// clôtures de semaine : dernière séance de chaque semaine (lundi→dimanche, UTC) ; la semaine en cours (non terminée à la date asOfTs) est exclue
+function weeklyCloses(series,asOfTs){
+  const out=[]; let key=null, last=null;
+  for(const d of series){
+    if(asOfTs&&d.t>asOfTs) break;
+    const dt=new Date(d.t*1000), mon=Date.UTC(dt.getUTCFullYear(),dt.getUTCMonth(),dt.getUTCDate()-((dt.getUTCDay()+6)%7))/1000;
+    if(mon!==key){ if(last) out.push(last); key=mon; }
+    last={t:d.t,p:d.p,wk:mon};
+  }
+  if(last) out.push(last);
+  const ref=asOfTs||Math.floor(Date.now()/1000);
+  while(out.length&&out[out.length-1].wk+7*86400-1>=ref) out.pop();
+  return out;
+}
+function bbAt(p,i,n,k){            // bandes à la semaine i (fenêtre de n clôtures se terminant en i)
+  const a=p.slice(i-n+1,i+1), mid=a.reduce((s,v)=>s+v,0)/n, sd=Math.sqrt(a.reduce((s,v)=>s+(v-mid)*(v-mid),0)/n);
+  return {mid,up:mid+k*sd,lo:mid-k*sd};
+}
+function bbSignal(p,i,n,k){
+  const b=bbAt(p,i,n,k), b0=bbAt(p,i-1,n,k), close=p[i], slope=b.mid-b0.mid;
+  const signal=(close<b.mid||slope<0)?"VENDRE":(close>b.up&&slope>0)?"ACHAT":"WATCH";   // VENDRE prime ; sinon ACHAT ; sinon WATCH
+  return {signal,close,mid:b.mid,up:b.up,lo:b.lo,slope,slopePct:100*slope/b0.mid,vsUp:100*(close/b.up-1),vsMid:100*(close/b.mid-1)};
+}
+function bollinger(series,asOfTs){
+  const {n,k}=BB(), w=weeklyCloses(series,asOfTs);
+  if(w.length<n+1) return null;                                   // il faut n clôtures + 1 pour juger la pente de la bande milieu
+  const p=w.map(x=>x.p), last=w.length-1, r=bbSignal(p,last,n,k);
+  let weeks=1; for(let i=last-1;i>=n;i--){ if(bbSignal(p,i,n,k).signal===r.signal) weeks++; else break; }
+  return {...r,weeks,weekT:w[last].t,nWeeks:w.length};
+}
+
+// État de la stratégie à une date donnée (cutoff = timestamp en secondes, null = aujourd'hui)
+function snapshot(records,cutoff){
+  const cut=s=>cutoff?s.filter(d=>d.t<=cutoff):s;
+  const canaries=[];
+  for(const x of records.filter(r=>isCanary(r.id)&&r.series)){          // canaris : conservés pour information
+    const s=cut(x.series); if(s.length<260) continue;
+    const c=canaryScore(s); canaries.push({x,c,state:c.state});
+  }
+  const red=canaries.filter(z=>z.state==="ROUGE").length;
+  const off=[], rank={ACHAT:0,WATCH:1,VENDRE:2};
+  for(const x of records.filter(r=>isOff(r.id)&&r.series)){
+    const b=bollinger(x.series,cutoff); if(b) off.push({x,b,signal:b.signal});
+  }
+  off.sort((a,b)=>rank[a.signal]-rank[b.signal]||(a.signal==="VENDRE"?b.b.vsMid-a.b.vsMid:b.b.vsUp-a.b.vsUp));
+  return {red,canaries,off};
+}
+
+function prevDecision(){
+  const step=CONFIG.decisionIntervalDays||15;
+  const today=new Date(); today.setHours(0,0,0,0);
+  let d=new Date(CONFIG.decisionAnchor+"T00:00:00");
+  if(d>=today){ while(d>=today) d.setDate(d.getDate()-step); return d; }
+  for(;;){ const n=new Date(d); n.setDate(n.getDate()+step); if(n>=today) return d; d=n; }
+}
+
+const PRODUCTS={
+  SP500:{title:"S&P 500",items:[
+    {name:"SPDR S&P 500 UCITS ETF Acc (SPYL)",isin:"IE000XZSV718",ter:"0,03 %",env:"CTO / AV",tag:"votre produit actuel · le moins cher"},
+    {name:"Amundi PEA S&P 500 UCITS ETF Acc (PSP5)",isin:"FR0011871128",ter:"0,15 %",env:"PEA"},
+    {name:"iShares S&P 500 Swap PEA UCITS ETF Acc (SPEA)",isin:null,ter:"≈ 0,05–0,10 %",env:"PEA",note:"récent (mai 2025), TER variable selon les sources"}]},
+  CW8:{title:"MSCI World",note:"CW8 actuel : 0,38 % — les alternatives ci-dessous coûtent 2 à 3 fois moins.",items:[
+    {name:"Amundi PEA Monde MSCI World UCITS ETF Acc (DCAM)",isin:"FR001400U5Q4",ter:"0,20 %",env:"PEA",tag:"meilleur choix PEA"},
+    {name:"iShares MSCI World Swap PEA UCITS ETF Acc (WPEA)",isin:"IE0002XZSHO1",ter:"0,20 %",env:"PEA"},
+    {name:"SPDR MSCI World UCITS ETF Acc (SPPW)",isin:"IE00BFY0GT14",ter:"0,12 %",env:"CTO / AV",tag:"moins cher hors PEA"}]},
+  PAASI:{title:"Asie émergente",note:"Indices différents : PAASI suit un indice ESG « screened ».",items:[
+    {name:"Amundi PEA Asie Émergente Screened UCITS ETF Acc (PAASI)",isin:"FR0013412012",ter:"0,30 %",env:"PEA",tag:"votre produit actuel · le moins cher en PEA"},
+    {name:"iShares MSCI EM Asia UCITS ETF Acc",isin:"IE00B5L8K969",ter:"0,20 %",env:"CTO / AV",tag:"moins cher hors PEA"},
+    {name:"Amundi MSCI Em Asia UCITS ETF Acc (AASI)",isin:"LU1681044480",ter:"0,20 %",env:"CTO / AV"}]},
+  COMO:{title:"Matières premières",items:[
+    {name:"Amundi Bloomberg Equal-weight Commodity ex-Agriculture UCITS ETF Acc (COMO)",isin:"LU1829218749",ter:"0,30 %",env:"CTO / AV",tag:"votre produit actuel · déjà le moins cher"}],
+    note:"Comparables relevés : 0,39 % (BNP Easy Energy & Metals) et 0,46 % (iShares Diversified Commodity)."},
+  BTC:{title:"Bitcoin",note:"Le bitcoin ne verse aucun revenu : la notion de capitalisation ne s'applique pas. ETP physiques, hors PEA. Évitez les ETP à 1–2 % (21Shares ABTC 1,49 %, VanEck 1,00 %, Bitwise 2,00 %).",items:[
+    {name:"WisdomTree Physical Bitcoin (BTCW)",isin:"GB00BJYDH287",ter:"≈ 0,15 %",env:"CTO"},
+    {name:"iShares Bitcoin ETP (IB1T)",isin:"XS2940466316",ter:"0,15 % jusqu'au 31/12/2026, puis 0,25 %",env:"CTO"},
+    {name:"21Shares Bitcoin Core ETP (CBTC)",isin:"CH1199067674",ter:"≈ 0,10–0,21 %",env:"CTO"}]},
+  GOLD:{title:"Or",note:"ETC adossés à de l'or physique, sans dividende.",items:[
+    {name:"Xtrackers IE Physical Gold ETC",isin:"DE000A2T0VU5",ter:"0,11 %",env:"CTO / AV",tag:"le moins cher relevé"},
+    {name:"iShares Physical Gold ETC (SGLN)",isin:"IE00B4ND3602",ter:"0,12 %",env:"CTO / AV"},
+    {name:"Amundi Physical Gold ETC (GOLD)",isin:"FR0013416716",ter:"0,12 %",env:"CTO / AV",note:"cotation Paris"}]}
+};
+Object.assign(PRODUCTS,{
+  NRJC:{title:"Énergies nouvelles",items:[{name:"Amundi MSCI New Energy UCITS ETF Acc (NRJC)",isin:"FR0014002CG3",ter:"0,60 %",env:"CTO / AV",tag:"produit testé"}]},
+  NCLR:{title:"Uranium & nucléaire",items:[{name:"WisdomTree Uranium and Nuclear Energy UCITS ETF USD Acc (NCLR)",isin:"IE0003BJ2JS4",ter:"0,45 %",env:"CTO / AV",tag:"produit testé"}]},
+  GOAI:{title:"Intelligence artificielle",items:[{name:"Amundi STOXX Global Artificial Intelligence UCITS ETF Acc (GOAI)",isin:"LU1861132840",ter:"≈ 0,30–0,40 % (selon la source)",env:"CTO / AV",tag:"produit testé"}]},
+  D5BI:{title:"Mexique",items:[{name:"Xtrackers MSCI Mexico UCITS ETF 1C (D5BI)",isin:"LU0476289466",ter:"0,65 %",env:"CTO / AV",tag:"produit testé",note:"capitalisation ou distribution selon les sources : vérifier le DIC"}]},
+  COMM:{title:"Matières premières",items:[{name:"iShares Diversified Commodity Swap UCITS ETF (COMM)",isin:"IE00BDFL4P12",ter:"≈ 0,46 %",env:"CTO / AV",note:"COMO (0,30 %) est moins cher"}]},
+  BRKB:{title:"Berkshire Hathaway",note:"Action individuelle (pas de TER).",items:[{name:"Berkshire Hathaway classe B (BRK.B)",isin:"US0846707026",ter:"aucun (action)",env:"CTO"}]},
+  IUSN:{title:"Petites caps monde",items:[{name:"iShares MSCI World Small Cap UCITS ETF (IUSN)",isin:"IE00BF4RFH31",ter:"à vérifier sur le DIC",env:"CTO / AV",tag:"produit testé"}]},
+  EUNM:{title:"Émergents monde",items:[{name:"iShares MSCI Emerging Markets UCITS ETF (EUNM)",isin:"IE00B4L5YC18",ter:"à vérifier sur le DIC",env:"CTO / AV",tag:"produit testé"}]},
+  XFVT:{title:"Vietnam",items:[{name:"Xtrackers FTSE Vietnam Swap UCITS ETF (XFVT)",isin:"LU0322252924",ter:"à vérifier sur le DIC",env:"CTO / AV",tag:"produit testé"}]},
+  LTUR:{title:"Turquie",items:[{name:"MSCI Turkey UCITS ETF (LTUR)",isin:"LU1900067601",ter:"à vérifier sur le DIC",env:"CTO / AV",tag:"produit testé"}]},
+  AWAT:{title:"Eau",items:[{name:"Amundi MSCI Water UCITS ETF (AWAT)",isin:"FR0011882364",ter:"à vérifier sur le DIC",env:"PEA / CTO",tag:"produit testé",note:"version à distribution probable : chercher la version Acc"}]}
+});
+const justetfLink=isin=>`https://www.justetf.com/fr/etf-profile.html?isin=${isin}`;
+
+function renderProducts(buys){
+  const box=$("products-body"); box.innerHTML="";
+  if(!buys.length){ box.innerHTML='<div class="text-sm text-slate-400">Aucun actif en ACHAT pour le moment.</div>'; return; }
+  for(const o of buys){
+    const id=o.x.id, P=PRODUCTS[id];
+    const head=`<div class="flex justify-between items-baseline"><div class="font-bold text-indigo-300">${id} <span class="text-slate-400 font-normal">· ${P?P.title:o.x.name}</span></div><div class="text-xs text-emerald-400 font-bold">ACHAT depuis ${o.b.weeks} sem.</div></div>`;
+    let body="";
+    if(P){
+      body=P.items.map(it=>`<div class="mt-2 p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/60">
+        <div class="text-sm font-semibold">${it.isin?`<a class="hover:underline" target="_blank" rel="noopener" href="${justetfLink(it.isin)}">${it.name}</a>`:it.name}</div>
+        <div class="text-xs text-slate-400 mt-0.5">${it.isin?`<span class="font-mono">${it.isin}</span> · `:""}<span class="text-emerald-300 font-semibold">TER ${it.ter}</span> · ${it.env}${it.tag?` · <span class="text-amber-300">${it.tag}</span>`:""}${it.note?` · ${it.note}`:""}</div></div>`).join("")
+        +(P.note?`<div class="text-xs text-slate-500 mt-2">${P.note}</div>`:"");
+    }else{
+      body=`<div class="mt-2 text-xs text-slate-400">${o.x.us?'<b class="text-amber-300">ETF coté aux États-Unis :</b> en principe non accessible aux particuliers de l\'UE (réglementation PRIIPs). ':''}Pas de produit vérifié pour cet actif. Cherchez un équivalent UCITS à capitalisation sur <a class="text-indigo-300 hover:underline" target="_blank" rel="noopener" href="https://www.justetf.com/fr/search.html?search=ETFS&query=${encodeURIComponent(o.x.name.split("–")[0].trim())}">justETF</a> (tri par TER).</div>`;
+    }
+    box.innerHTML+=`<div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4">${head}${body}</div>`;
+  }
+}
+
+function render(records){
+  const cur=snapshot(records,null);
+  const nowSec=Date.now()/1000;
+  const ref1m=snapshot(records,nowSec-30*86400);                  // canaris : comparaison à 1 mois (pour information)
+  const dd=prevDecision();
+  const refDec=snapshot(records,dd.getTime()/1000+86399);        // signaux à la décision précédente
+  const prevSig={}; refDec.off.forEach(o=>prevSig[o.x.id]=o.signal);
+
+  // ── Canaris
+  $("canary-body").innerHTML="";
+  for(const x of records.filter(r=>isCanary(r.id))){
+    if(!x.series){
+      $("canary-body").innerHTML+=`<tr><td class="py-3 px-3 font-semibold">${x.name}</td><td colspan="8" class="py-3 px-3 text-rose-400">${x.error}</td></tr>`;
+      continue;
+    }
+    const z=cur.canaries.find(k=>k.x.id===x.id); if(!z) continue;
+    const c=z.c, prev=ref1m.canaries.find(k=>k.x.id===x.id);
+    const chg=prev&&prev.state!==z.state;
+    $("canary-body").innerHTML+=`<tr>
+      <td class="py-3 px-3 font-semibold">${x.name}<span class="text-slate-500 ml-1">${x.ticker}</span></td>
+      <td class="py-3 px-3 text-right">${fmt(c.r1)}</td><td class="py-3 px-3 text-right">${fmt(c.r3)}</td>
+      <td class="py-3 px-3 text-right">${fmt(c.r6)}</td><td class="py-3 px-3 text-right">${fmt(c.r12)}</td>
+      <td class="py-3 px-3 text-right font-semibold">${c.raw.toFixed(1)}</td>
+      <td class="py-3 px-3 text-right font-bold ${c.smooth>=0?'text-emerald-400':'text-rose-400'}">${c.smooth>=0?'+':''}${c.smooth.toFixed(1)}</td>
+      <td class="py-3 px-3 text-center font-bold ${z.state==="VERT"?'text-emerald-400':'text-rose-400'}">${z.state}</td>
+      <td class="py-3 px-3 text-center text-xs ${chg?'text-rose-400 font-extrabold':'text-slate-400'}">${prev?`${prev.state}${chg?` → ${z.state} ⚠`:""}`:"n/d"}</td>
+    </tr>`;
+  }
+  $("canary-summary").innerHTML=`<span class="text-emerald-400">${cur.canaries.length-cur.red} vert(s)</span> · <span class="text-rose-400">${cur.red} rouge(s)</span>`;
+
+  drawCanaryCharts(cur);
+
+  // ── Signaux : changements depuis la décision précédente
+  const {n:bbN,k:bbK}=BB();
+  $("bb-params").textContent=`${bbN} sem. · ${String(bbK).replace(".",",")} σ`; $("bb-n").textContent=bbN; $("bb-k").textContent=String(bbK).replace(".",",");
+  const sells=[], newBuys=[];
+  cur.off.forEach(o=>{ const ps=prevSig[o.x.id]; if(!ps) return;
+    if(o.signal==="VENDRE"&&ps!=="VENDRE") sells.push({o,ps});
+    if(o.signal==="ACHAT"&&ps!=="ACHAT") newBuys.push(o); });
+  const sellMap=new Map(sells.map(z=>[z.o,z.ps])), newSet=new Set(newBuys);
+  const buys=cur.off.filter(o=>o.signal==="ACHAT");
+  const badge=sig=>{ const c=sig==="ACHAT"?"text-emerald-400 bg-emerald-500/10 border-emerald-500/30":sig==="WATCH"?"text-amber-400 bg-amber-500/10 border-amber-500/30":"text-rose-400 bg-rose-500/10 border-rose-500/30";
+    return `<span class="border px-2.5 py-1 rounded-full text-xs font-bold ${c}">${sig}</span>`; };
+  const upCell=b=>`<span class="${b.vsUp>0?"text-emerald-400":"text-slate-300"} font-semibold">${sp(b.vsUp)}</span>`;
+  const midCell=b=>`<span class="${b.slope>=0?"text-emerald-400":"text-rose-400"}">${b.slope>=0?"↗":"↘"} ${sp(b.slopePct,2)}</span> <span class="text-xs text-slate-500">/ sem.</span>`;
+
+  // ── Tableau « Rotation offensive » : actifs à acheter + actifs passés à VENDRE
+  $("ref-decision-label").textContent=`Changements comparés à la décision du ${fdate(dd)}.`;
+  const rows=cur.off.filter(o=>o.signal==="ACHAT"||sellMap.has(o));
+  $("rotation-count").textContent=`${buys.length} à acheter · ${sells.length} passé(s) à VENDRE · ${cur.off.length} actifs suivis`;
+  $("asset-body").innerHTML=rows.length?"":`<tr><td colspan="7" class="py-6 px-3 text-center text-slate-400">Aucun actif à acheter ni nouveau signal VENDRE pour le moment.</td></tr>`;
+  rows.forEach(o=>{
+    const sell=sellMap.has(o), b=o.b;
+    const action=sell?`<div class="inline-block bg-rose-600 text-white font-extrabold px-3 py-1.5 rounded-lg animate-pulse">🔴 VENDRE</div><div class="text-xs text-rose-300 mt-1">Signal changé : ${sellMap.get(o)} → VENDRE</div>`
+      :`<span class="text-emerald-300 font-bold">Acheter</span>${newSet.has(o)?` <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-2 py-0.5 rounded ml-1">NOUVEAU</span>`:""}`;
+    $("asset-body").innerHTML+=`<tr class="${sell?"bg-rose-950/40":"bg-emerald-950/20"}">
+      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${o.x.id}</div><div class="text-xs text-slate-500">${esc(o.x.name)}</div><div class="text-[11px] text-slate-500">classe : ${classLabel(classOf(o.x))}</div></td>
+      <td class="py-3 px-3 text-sm text-slate-300">${catInfo(catOf(o.x)).short||catInfo(catOf(o.x)).label}</td>
+      <td class="py-3 px-3 text-center">${badge(o.signal)}</td>
+      <td class="py-3 px-3 text-right">${upCell(b)}</td>
+      <td class="py-3 px-3 text-right">${midCell(b)}</td>
+      <td class="py-3 px-3 text-right text-slate-300">${b.weeks} sem.</td>
+      <td class="py-3 px-3">${action}</td></tr>`;
+  });
+
+  // ── Tous les actifs suivis : toujours affichés (signaux, puis actifs sans cours ou sans historique suffisant)
+  const noData=records.filter(r=>isOff(r.id)&&!r.series);
+  const shortHist=records.filter(r=>isOff(r.id)&&r.series&&!cur.off.some(o=>o.x.id===r.id));
+  $("all-count").textContent=`${cur.off.length} avec signal sur ${cur.off.length+shortHist.length+noData.length}`;
+  const status=o=>sellMap.has(o)?`<b class="text-rose-400">VENDRE</b> <span class="text-xs text-slate-500">(${sellMap.get(o)} → VENDRE)</span>`
+    :o.signal==="ACHAT"?`<span class="text-emerald-300">Acheter</span>${newSet.has(o)?' <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-1.5 py-0.5 rounded">NOUVEAU</span>':""}`
+    :o.signal==="WATCH"?'<span class="text-amber-300">Conserver, ne pas renforcer</span>':'<span class="text-slate-400">Vendre si détenu</span>';
+  let allRows=cur.off.map((o,i)=>`<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${badge(o.signal)}</td><td class="py-1.5 px-3 text-right">${upCell(o.b)}</td><td class="py-1.5 px-3 text-right">${midCell(o.b)}</td><td class="py-1.5 px-3 text-right text-slate-300">${o.b.weeks} sem.</td><td class="py-1.5 px-3 text-xs">${status(o)}</td></tr>`).join("");
+  const dash=`<td class="py-1.5 px-3 text-right text-slate-600">—</td>`;
+  allRows+=shortHist.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}${dash}<td class="py-1.5 px-3 text-xs text-amber-400">Historique insuffisant (moins de ${bbN+1} semaines de cours)</td></tr>`).join("");
+  allRows+=noData.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}${dash}<td class="py-1.5 px-3 text-xs text-rose-400">Pas de cours : ${m.error}</td></tr>`).join("");
+  $("all-body").innerHTML=allRows;
+  $("all-errors").innerHTML=(noData.length||shortHist.length)?`<div class="text-xs text-slate-400 mt-2">Les actifs sans cours ou sans historique suffisant n'ont pas de signal (récupération automatique, plusieurs passages par jour).</div>`:"";
+
+  // ── Bandeau d'alerte
+  const box=$("alert-box");
+  if(sells.length||newBuys.length){
+    box.className="";
+    box.innerHTML=`<div class="border-2 ${sells.length?"border-rose-500 bg-rose-950/50":"border-emerald-600 bg-emerald-950/30"} rounded-2xl p-5">
+      ${sells.length?`<div class="text-rose-300 font-extrabold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i>SIGNAL CHANGÉ — À VENDRE : ${sells.map(z=>`<span class="font-mono">${z.o.x.id}</span> (${catInfo(catOf(z.o.x)).short}, ${z.ps} → VENDRE)`).join(", ")}</div>`:""}
+      ${newBuys.length?`<div class="text-emerald-300 font-bold mt-1">Nouveau signal ACHAT : ${newBuys.map(o=>`${o.x.id} (${catInfo(catOf(o.x)).short})`).join(", ")}</div>`:""}
+      <div class="text-xs text-slate-400 mt-1">Comparaison avec la décision du ${fdate(dd)}.</div></div>`;
+  }else{ box.className="hidden"; box.innerHTML=""; }
+
+  // ── Produits (actifs en ACHAT) + répartition des signaux
+  renderProducts(buys);
+  $("n-buy").textContent=buys.length; $("n-watch").textContent=cur.off.filter(o=>o.signal==="WATCH").length; $("n-sell").textContent=cur.off.filter(o=>o.signal==="VENDRE").length;
+  renderManager();
+}
+
+// ───────── Module : ajouter / supprimer un actif (produit un assets_v3.json modifié, à déposer sur GitHub) ─────────
+const GH_FILE="assets_v3.json";
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const slug=t=>t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]+/g,"_").replace(/^_+|_+$/g,"");
+const mgChanges=[];
+function mgMsg(html,kind){
+  const el=$("mg-msg");
+  el.className="mt-4 text-sm rounded-lg px-4 py-3 border "+(kind==="ok"?"bg-emerald-500/10 border-emerald-500/40 text-emerald-300":kind==="err"?"bg-rose-500/10 border-rose-500/40 text-rose-300":"bg-slate-900/60 border-slate-700 text-slate-300");
+  el.innerHTML=html;
+}
+function downloadJson(cfg){
+  const text=JSON.stringify(cfg,null,2)+"\n";
+  const a=document.createElement("a");
+  try{ a.href=URL.createObjectURL(new Blob([text],{type:"application/json"})); }
+  catch(e){ a.href="data:application/json;charset=utf-8,"+encodeURIComponent(text); }
+  a.download=GH_FILE; document.body.appendChild(a); a.click(); a.remove();
+  if(a.href.startsWith("blob:")) setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+function mutAdd(cfg,a){
+  const all=[...(cfg.canaries||[]),...(cfg.offensive||[])];
+  if(all.some(x=>x.id.toUpperCase()===a.id.toUpperCase())) throw new Error(`L'identifiant « ${a.id} » existe déjà.`);
+  if(all.some(x=>x.ticker.toUpperCase()===a.ticker.toUpperCase())) throw new Error(`Le ticker « ${a.ticker} » est déjà suivi.`);
+  cfg.classes=cfg.classes||{};
+  if(a.newClassLabel&&!cfg.classes[a.cls]) cfg.classes[a.cls]=a.newClassLabel;
+  const o={id:a.id,ticker:a.ticker,name:a.name,currency:a.currency,class:a.cls,category:a.category};
+  if(a.us) o.us=true;
+  cfg.offensive.push(o);
+}
+function mutDel(cfg,id){
+  const i=(cfg.offensive||[]).findIndex(x=>x.id===id);
+  if(i<0) throw new Error(`« ${id} » n'est plus dans la liste.`);
+  if(cfg.offensive.length<=1) throw new Error("Il doit rester au moins un actif.");
+  cfg.offensive.splice(i,1);
+}
+function renderPending(){
+  const box=$("mg-pending");
+  if(!mgChanges.length){ box.className="hidden"; box.innerHTML=""; return; }
+  box.className="mt-5 border border-amber-500/50 bg-amber-500/10 rounded-xl p-4 text-sm";
+  box.innerHTML=`<div class="font-semibold text-amber-300"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${mgChanges.length} modification(s) en attente de dépôt sur GitHub</div>
+    <ul class="list-disc pl-5 mt-1 text-slate-300">${mgChanges.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>
+    <div class="text-xs text-slate-400 mt-2">Tant que le fichier n'est pas déposé sur GitHub, ces modifications ne sont appliquées que dans cette page, jusqu'au prochain rechargement. Le dernier fichier téléchargé contient toutes les modifications ci-dessus.</div>
+    <div class="flex flex-wrap items-center gap-4 mt-3">
+      <button id="mg-redl" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-download mr-1"></i>Télécharger à nouveau assets_v3.json</button>
+      <button id="mg-cancel" type="button" class="text-rose-300 hover:underline text-sm">Annuler les modifications en attente</button>
+    </div>`;
+  $("mg-redl").onclick=()=>downloadJson(CONFIG);
+  $("mg-cancel").onclick=async()=>{ window.__cfgOverride=null; mgChanges.length=0; renderPending(); mgMsg("Modifications annulées : la liste d'origine est rechargée.","info"); await refresh(); };
+}
+// applique la modification sur une copie de la liste, la télécharge et l'applique à la page (session en cours)
+async function applyLocal(mutate,summary){
+  if(!CONFIG.categories||!CONFIG.regles) throw new Error("La liste d'actifs n'a pas pu être chargée depuis assets_v3.json : rechargez la page (Ctrl+F5) avant de la modifier.");
+  const cfg=JSON.parse(JSON.stringify(CONFIG));
+  mutate(cfg);                                   // validation : lève une erreur avant tout téléchargement
+  window.__cfgOverride=cfg; CONFIG=cfg; mgChanges.push(summary);
+  downloadJson(cfg); renderPending();
+  await refresh();
+}
+const MG_DONE=t=>`✅ ${t} Le fichier <b>assets_v3.json</b> modifié a été téléchargé : déposez-le maintenant dans GitHub (étapes ci-dessous).`;
+let managerReady=false;
+function fillSelect(sel,fill){ const sig=fill.sig; if(sel.dataset.sig===sig) return; const keep=sel.value; sel.innerHTML=""; fill.build(sel); sel.dataset.sig=sig; if([...sel.options].some(o=>o.value===keep)) sel.value=keep; }
+function renderManager(){
+  if(!$("manage-section")) return;
+  const off=(CONFIG.offensive||[]).slice();
+  // liste déroulante de suppression, groupée par catégorie
+  fillSelect($("mg-del"),{sig:JSON.stringify(off.map(x=>[x.id,x.name,catOf(x)])),build:sel=>{
+    const ph=document.createElement("option"); ph.value=""; ph.textContent="— choisir un actif —"; sel.appendChild(ph);
+    const addGroup=(label,list)=>{ if(!list.length) return; const g=document.createElement("optgroup"); g.label=label;
+      list.sort((a,b)=>a.id.localeCompare(b.id)).forEach(x=>{ const o=document.createElement("option"); o.value=x.id; o.textContent=`${x.id} · ${x.name}`; g.appendChild(o); }); sel.appendChild(g); };
+    for(const [c,info] of Object.entries(cats())) addGroup(info.short||info.label,off.filter(x=>catOf(x)===c));
+    addGroup("Autres",off.filter(x=>!cats()[catOf(x)]));
+  }});
+  fillSelect($("mg-cat"),{sig:JSON.stringify(Object.entries(cats()).map(([k,v])=>[k,v.short||v.label])),build:sel=>{
+    Object.entries(cats()).forEach(([k,v])=>{ const o=document.createElement("option"); o.value=k; o.textContent=v.label||v.short||k; sel.appendChild(o); });
+  }});
+  const classes=(CONFIG.classes&&Object.keys(CONFIG.classes).length)?CONFIG.classes:DEFAULT_CLASS_LABEL;
+  fillSelect($("mg-class"),{sig:JSON.stringify(classes),build:sel=>{
+    Object.entries(classes).sort((a,b)=>a[1].localeCompare(b[1],"fr")).forEach(([k,v])=>{ const o=document.createElement("option"); o.value=k; o.textContent=v; sel.appendChild(o); });
+    const n=document.createElement("option"); n.value="__new"; n.textContent="➕ Nouvelle classe…"; sel.appendChild(n);
+  }});
+  if(managerReady) return;
+  managerReady=true;
+  try{ ["canaris_gh_token","canaris_gh_repo"].forEach(k=>localStorage.removeItem(k)); }catch(e){}   // anciens réglages (jeton GitHub) : effacés de ce navigateur
+  $("mg-class").addEventListener("change",()=>$("mg-newclass-box").classList.toggle("hidden",$("mg-class").value!=="__new"));
+  $("mg-id").addEventListener("input",()=>{ $("mg-id").dataset.touched="1"; });
+  $("mg-ticker").addEventListener("input",()=>{
+    if($("mg-id").dataset.touched==="1") return;
+    $("mg-id").value=$("mg-ticker").value.split(/[.=\-^]/)[0].toUpperCase().replace(/[^A-Z0-9_]/g,"");
+  });
+  const busy=b=>{ $("mg-add-btn").disabled=b; $("mg-del-btn").disabled=b; };
+  $("mg-del-btn").addEventListener("click",async()=>{
+    const id=$("mg-del").value;
+    if(!id){ mgMsg("Choisissez d'abord un actif dans la liste.","err"); return; }
+    const x=(CONFIG.offensive||[]).find(z=>z.id===id);
+    if(!confirm(`Supprimer « ${id} »${x?` (${x.name})`:""} de la liste des actifs suivis ?`)) return;
+    busy(true);
+    try{ await applyLocal(cfg=>mutDel(cfg,id),`Suppression de ${id}`); mgMsg(MG_DONE(`« ${esc(id)} » supprimé.`),"ok"); $("mg-del").value=""; }
+    catch(e){ mgMsg("❌ "+esc(e.message),"err"); }
+    busy(false);
+  });
+  $("mg-add-btn").addEventListener("click",async()=>{
+    const ticker=$("mg-ticker").value.trim(), id=$("mg-id").value.trim().toUpperCase(), name=$("mg-name").value.replace(/[<>]/g,"").trim();
+    let cls=$("mg-class").value, newLabel="";
+    if(!ticker||!id||!name){ mgMsg("Renseignez au moins le ticker, l'identifiant et le nom.","err"); return; }
+    if(/\s/.test(ticker)){ mgMsg("Le ticker ne doit pas contenir d'espace.","err"); return; }
+    if(!/^[A-Z0-9_]+$/.test(id)){ mgMsg("L'identifiant ne peut contenir que des lettres, chiffres et _.","err"); return; }
+    if(cls==="__new"){
+      newLabel=$("mg-newclass").value.replace(/[<>]/g,"").trim();
+      if(!newLabel){ mgMsg("Saisissez le nom de la nouvelle classe.","err"); return; }
+      cls=slug(newLabel); if(!cls){ mgMsg("Nom de classe invalide.","err"); return; }
+    }
+    const a={ticker,id,name,currency:$("mg-cur").value,category:$("mg-cat").value,cls,newClassLabel:newLabel,us:$("mg-us").checked};
+    busy(true);
+    try{
+      await applyLocal(cfg=>mutAdd(cfg,a),`Ajout de ${id} (${ticker})`);
+      mgMsg(MG_DONE(`« ${esc(id)} » (${esc(ticker)}) ajouté.`),"ok");
+      ["mg-ticker","mg-id","mg-name","mg-newclass"].forEach(k=>$(k).value=""); $("mg-id").dataset.touched=""; $("mg-us").checked=false;
+    }catch(e){ mgMsg("❌ "+esc(e.message),"err"); }
+    busy(false);
+  });
+}
+
+function nextDecision(){
+  const anchor=new Date(CONFIG.decisionAnchor+"T00:00:00");
+  const step=CONFIG.decisionIntervalDays||15;
+  const now=new Date();
+  let d=new Date(anchor);
+  while(d<=now)d.setDate(d.getDate()+step);
+  return d;
+}
+
+$("refreshBtn").addEventListener("click",()=>refresh(true));
+
+refresh();
+setInterval(()=>refresh(),3600*1000);
+</script>
+</body>
+</html>
