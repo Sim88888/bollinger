@@ -15,8 +15,8 @@
   <div class="flex items-center gap-3">
     <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg"><i class="fa-solid fa-shield-halved text-xl"></i></div>
     <div>
-      <h1 class="text-xl font-bold">Stratégie Canaris <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/30 ml-2">V3 · Décision 15j</span></h1>
-      <p class="text-xs text-slate-400">Données automatiques · tendance · momentum · accélération · force relative</p>
+      <h1 class="text-xl font-bold">Stratégie Bollinger <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/30 ml-2">Hebdomadaire</span></h1>
+      <p class="text-xs text-slate-400">Données automatiques · bandes de Bollinger sur clôtures de semaine</p>
     </div>
   </div>
   <div class="flex flex-wrap justify-center items-center gap-2 text-xs">
@@ -31,24 +31,6 @@
 <main class="max-w-7xl mx-auto px-4 py-7 space-y-7">
 
 <section id="alert-box" class="hidden"></section>
-
-<section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
-<div class="flex flex-col md:flex-row justify-between gap-3 mb-4">
-  <div>
-    <h3 class="text-lg font-bold"><i class="fa-solid fa-kiwi-bird text-indigo-400 mr-2"></i>État des 2 canaris <span class="text-xs font-normal text-slate-400 ml-2">pour information : n'agit plus sur les signaux</span></h3>
-    <p class="text-xs text-slate-400 mt-1">Score 13612 = 12×1M + 4×3M + 2×6M + 1×12M, lissé sur 5 séances. Seul le signe détermine Vert/Rouge. Calcul dans la devise de cotation (sans conversion EUR), sur cours de clôture (séance en cours exclue).</p>
-  </div>
-  <div id="canary-summary" class="text-sm"></div>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead class="text-xs uppercase text-slate-400 border-b border-slate-700">
-<tr><th class="py-3 px-3">Canari</th><th class="py-3 px-3 text-right">1M</th><th class="py-3 px-3 text-right">3M</th><th class="py-3 px-3 text-right">6M</th><th class="py-3 px-3 text-right">12M</th><th class="py-3 px-3 text-right">13612 brut</th><th class="py-3 px-3 text-right">Lissé 5j</th><th class="py-3 px-3 text-center">État</th><th class="py-3 px-3 text-center">Il y a 1 mois</th></tr>
-</thead>
-<tbody id="canary-body" class="divide-y divide-slate-700/60"></tbody>
-</table>
-</div>
-</section>
 
 <section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
 <h3 class="text-lg font-bold"><i class="fa-solid fa-chart-area text-indigo-400 mr-2"></i>Canaris · historique sur 12 mois</h3>
@@ -80,7 +62,7 @@
 <div class="mt-6 bg-slate-900/40 border border-slate-700 rounded-xl p-4">
 <h4 class="text-sm font-semibold text-slate-300">Tous les actifs testés (<span id="all-count">0</span>)</h4>
 <div class="overflow-x-auto mt-3"><table class="w-full text-left text-sm">
-<thead class="text-xs uppercase text-slate-400 border-b border-slate-700"><tr><th class="py-2 px-3">#</th><th class="py-2 px-3">Catégorie</th><th class="py-2 px-3">Actif</th><th class="py-2 px-3 text-center">Signal</th><th class="py-2 px-3 text-right">Clôture vs haute</th><th class="py-2 px-3 text-right">Milieu</th><th class="py-2 px-3 text-right">Depuis</th><th class="py-2 px-3">Statut</th></tr></thead>
+<thead class="text-xs uppercase text-slate-400 border-b border-slate-700"><tr><th class="py-2 px-3">#</th><th class="py-2 px-3">Catégorie</th><th class="py-2 px-3">Actif</th><th class="py-2 px-3 text-center">Signal</th><th class="py-2 px-3 text-right">Pente bande milieu</th><th class="py-2 px-3 text-right">Depuis</th><th class="py-2 px-3">Statut</th></tr></thead>
 <tbody id="all-body" class="divide-y divide-slate-800"></tbody></table></div>
 <div id="all-errors"></div>
 </div>
@@ -231,7 +213,7 @@ async function loadSeries(item, fx){
   const s=await yahoo(item.ticker);
   // Convert USD quoted assets to EUR: USD price / EURUSD.
   // For USD assets we fetch the same-date EURUSD series.
-  if(item.currency==="USD" && item.role!=="canary" && item.convert!==false){   // les canaris restent dans leur devise de cotation
+  if(item.currency==="USD" && item.role!=="canary" && item.convert!==false && BB().eur){   // les canaris restent dans leur devise de cotation
     // taux EUR/USD « as-of » : dernier cours connu à l'instant de chaque séance (les cours EUR/USD sont horodatés à 23h00 UTC en été :
     // une jointure sur la date exacte supprimait toutes les séances du vendredi)
     const fxs=fx.slice().sort((a,b)=>a.t-b.t);
@@ -401,7 +383,11 @@ const fdate=d=>d.toLocaleDateString("fr-FR");
 const sp=(v,d=1)=>(v>=0?"+":"")+v.toFixed(d).replace(".",",")+" %";
 
 // ───────── Signal : bandes de Bollinger sur clôtures de semaine ─────────
-const BB=()=>({n:(CONFIG.bollinger&&CONFIG.bollinger.periodes)||20,k:(CONFIG.bollinger&&CONFIG.bollinger.ecartType)||0.75});
+const BB=()=>{ const c=CONFIG.bollinger||{};
+  return {n:c.periodes||20, k:c.ecartType||0.75,
+    incl:c.semaineEnCours!==false,            // true (défaut) : la semaine en cours compte avec le dernier cours connu (provisoire)
+    eur:c.devise!=="cotation"};               // "EUR" (défaut) : actifs en USD convertis en euros ; "cotation" : calcul en USD
+};
 // clôtures de semaine : dernière séance de chaque semaine (lundi→dimanche, UTC) ; la semaine en cours (non terminée à la date asOfTs) est exclue
 function weeklyCloses(series,asOfTs){
   const out=[]; let key=null, last=null;
@@ -413,7 +399,7 @@ function weeklyCloses(series,asOfTs){
   }
   if(last) out.push(last);
   const ref=asOfTs||Math.floor(Date.now()/1000);
-  while(out.length&&out[out.length-1].wk+7*86400-1>=ref) out.pop();
+  if(!BB().incl) while(out.length&&out[out.length-1].wk+7*86400-1>=ref) out.pop();   // semaine en cours exclue seulement si demandé
   return out;
 }
 function bbAt(p,i,n,k){            // bandes à la semaine i (fenêtre de n clôtures se terminant en i)
@@ -520,38 +506,15 @@ function renderProducts(buys){
 function render(records){
   const cur=snapshot(records,null);
   const nowSec=Date.now()/1000;
-  const ref1m=snapshot(records,nowSec-30*86400);                  // canaris : comparaison à 1 mois (pour information)
   const dd=prevDecision();
   const refDec=snapshot(records,dd.getTime()/1000+86399);        // signaux à la décision précédente
   const prevSig={}; refDec.off.forEach(o=>prevSig[o.x.id]=o.signal);
-
-  // ── Canaris
-  $("canary-body").innerHTML="";
-  for(const x of records.filter(r=>isCanary(r.id))){
-    if(!x.series){
-      $("canary-body").innerHTML+=`<tr><td class="py-3 px-3 font-semibold">${x.name}</td><td colspan="8" class="py-3 px-3 text-rose-400">${x.error}</td></tr>`;
-      continue;
-    }
-    const z=cur.canaries.find(k=>k.x.id===x.id); if(!z) continue;
-    const c=z.c, prev=ref1m.canaries.find(k=>k.x.id===x.id);
-    const chg=prev&&prev.state!==z.state;
-    $("canary-body").innerHTML+=`<tr>
-      <td class="py-3 px-3 font-semibold">${x.name}<span class="text-slate-500 ml-1">${x.ticker}</span></td>
-      <td class="py-3 px-3 text-right">${fmt(c.r1)}</td><td class="py-3 px-3 text-right">${fmt(c.r3)}</td>
-      <td class="py-3 px-3 text-right">${fmt(c.r6)}</td><td class="py-3 px-3 text-right">${fmt(c.r12)}</td>
-      <td class="py-3 px-3 text-right font-semibold">${c.raw.toFixed(1)}</td>
-      <td class="py-3 px-3 text-right font-bold ${c.smooth>=0?'text-emerald-400':'text-rose-400'}">${c.smooth>=0?'+':''}${c.smooth.toFixed(1)}</td>
-      <td class="py-3 px-3 text-center font-bold ${z.state==="VERT"?'text-emerald-400':'text-rose-400'}">${z.state}</td>
-      <td class="py-3 px-3 text-center text-xs ${chg?'text-rose-400 font-extrabold':'text-slate-400'}">${prev?`${prev.state}${chg?` → ${z.state} ⚠`:""}`:"n/d"}</td>
-    </tr>`;
-  }
-  $("canary-summary").innerHTML=`<span class="text-emerald-400">${cur.canaries.length-cur.red} vert(s)</span> · <span class="text-rose-400">${cur.red} rouge(s)</span>`;
 
   drawCanaryCharts(cur);
 
   // ── Signaux : changements depuis la décision précédente
   const {n:bbN,k:bbK}=BB();
-  $("bb-params").textContent=`${bbN} sem. · ${String(bbK).replace(".",",")} σ`; $("bb-n").textContent=bbN; $("bb-k").textContent=String(bbK).replace(".",",");
+  { const p=BB(); $("bb-params").textContent=`${bbN} sem. · ${String(bbK).replace(".",",")} σ · ${p.eur?"cours en EUR":"devise de cotation"} · ${p.incl?"semaine en cours incluse (provisoire)":"semaines terminées uniquement"}`; } $("bb-n").textContent=bbN; $("bb-k").textContent=String(bbK).replace(".",",");
   const sells=[], newBuys=[];
   cur.off.forEach(o=>{ const ps=prevSig[o.x.id]; if(!ps) return;
     if(o.signal==="VENDRE"&&ps!=="VENDRE") sells.push({o,ps});
@@ -589,10 +552,10 @@ function render(records){
   const status=o=>sellMap.has(o)?`<b class="text-rose-400">VENDRE</b> <span class="text-xs text-slate-500">(${sellMap.get(o)} → VENDRE)</span>`
     :o.signal==="ACHAT"?`<span class="text-emerald-300">Acheter</span>${newSet.has(o)?' <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-1.5 py-0.5 rounded">NOUVEAU</span>':""}`
     :o.signal==="WATCH"?'<span class="text-amber-300">Conserver, ne pas renforcer</span>':'<span class="text-slate-400">Vendre si détenu</span>';
-  let allRows=cur.off.map((o,i)=>`<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${badge(o.signal)}</td><td class="py-1.5 px-3 text-right">${upCell(o.b)}</td><td class="py-1.5 px-3 text-right">${midCell(o.b)}</td><td class="py-1.5 px-3 text-right text-slate-300">${o.b.weeks} sem.</td><td class="py-1.5 px-3 text-xs">${status(o)}</td></tr>`).join("");
+  let allRows=cur.off.map((o,i)=>`<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${badge(o.signal)}</td><td class="py-1.5 px-3 text-right">${midCell(o.b)}</td><td class="py-1.5 px-3 text-right text-slate-300">${o.b.weeks} sem.</td><td class="py-1.5 px-3 text-xs">${status(o)}</td></tr>`).join("");
   const dash=`<td class="py-1.5 px-3 text-right text-slate-600">—</td>`;
-  allRows+=shortHist.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}${dash}<td class="py-1.5 px-3 text-xs text-amber-400">Historique insuffisant (moins de ${bbN+1} semaines de cours)</td></tr>`).join("");
-  allRows+=noData.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}${dash}<td class="py-1.5 px-3 text-xs text-rose-400">Pas de cours : ${m.error}</td></tr>`).join("");
+  allRows+=shortHist.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-amber-400">Historique insuffisant (moins de ${bbN+1} semaines de cours)</td></tr>`).join("");
+  allRows+=noData.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-rose-400">Pas de cours : ${m.error}</td></tr>`).join("");
   $("all-body").innerHTML=allRows;
   $("all-errors").innerHTML=(noData.length||shortHist.length)?`<div class="text-xs text-slate-400 mt-2">Les actifs sans cours ou sans historique suffisant n'ont pas de signal (récupération automatique, plusieurs passages par jour).</div>`:"";
 

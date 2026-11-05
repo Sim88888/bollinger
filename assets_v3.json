@@ -1,378 +1,380 @@
 {
-  "version": "3.0",
-  "source": "Yahoo Finance Chart API",
-  "refreshHours": 6,
-  "historyRange": "2y",
-  "decisionIntervalDays": 15,
-  "decisionAnchor": "2026-10-01",
-  "canaries": [
-    {
-      "id": "EM",
-      "ticker": "VFEA.DE",
-      "name": "Émergents",
-      "currency": "EUR",
-      "role": "canary"
-    },
-    {
-      "id": "TIPS",
-      "ticker": "IDTP.L",
-      "name": "US TIPS",
-      "currency": "USD",
-      "role": "canary"
-    }
-  ],
-  "offensive": [
-    {
-      "id": "CW8",
-      "ticker": "CW8.PA",
-      "name": "MSCI World – Amundi CW8",
-      "currency": "EUR",
-      "class": "EQ_DEV",
-      "category": "ACT_DEV"
-    },
-    {
-      "id": "SP500",
-      "ticker": "SPYL.DE",
-      "name": "S&P 500 – SPDR SPYL",
-      "currency": "EUR",
-      "class": "EQ_DEV",
-      "category": "ACT_DEV"
-    },
-    {
-      "id": "PAASI",
-      "ticker": "PAASI.PA",
-      "name": "Asie émergente – Amundi PAASI",
-      "currency": "EUR",
-      "class": "EM_ASIA",
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "GOLD",
-      "ticker": "XAUUSD=X",
-      "name": "Or – cours spot (USD converti en EUR)",
-      "currency": "USD",
-      "proxy": true,
-      "alt": [
-        "GC=F"
-      ],
-      "class": "GOLD",
-      "category": "OR"
-    },
-    {
-      "id": "COMO",
-      "ticker": "COMO.PA",
-      "name": "Matières premières – Amundi COMO",
-      "currency": "EUR",
-      "class": "COMMO",
-      "category": "MP"
-    },
-    {
-      "id": "BTC",
-      "ticker": "BTC-EUR",
-      "name": "Bitcoin EUR",
-      "currency": "EUR",
-      "class": "BTC",
-      "category": "CRYPTO"
-    },
-    {
-      "id": "IEUS",
-      "ticker": "IEUS",
-      "name": "MSCI Europe Small Cap – iShares IEUS",
-      "currency": "USD",
-      "class": "EQ_SMALL_EU",
-      "us": true,
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "GDX",
-      "ticker": "GDX",
-      "name": "Gold Miners – VanEck GDX",
-      "currency": "USD",
-      "class": "GOLD_MINERS",
-      "us": true,
-      "category": "OR_SEC"
-    },
-    {
-      "id": "EEM",
-      "ticker": "EEM",
-      "name": "iShares MSCI Emerging Markets ETF – EEM",
-      "currency": "USD",
-      "class": "EM_WORLD",
-      "us": true,
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "EUNM",
-      "ticker": "EUNM.DE",
-      "name": "iShares MSCI Emerging Markets UCITS – EUNM",
-      "currency": "EUR",
-      "class": "EM_WORLD",
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "AAXJ",
-      "ticker": "AAXJ",
-      "name": "iShares MSCI All Country Asia ex Japan ETF – AAXJ",
-      "currency": "USD",
-      "class": "EM_ASIA",
-      "us": true,
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "IUSN",
-      "ticker": "IUSN.DE",
-      "name": "iShares MSCI World Small Cap UCITS – IUSN",
-      "currency": "EUR",
-      "class": "EQ_SMALL_WORLD",
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "MAGS",
-      "ticker": "MAGS",
-      "name": "Roundhill Magnificent Seven ETF – MAGS",
-      "currency": "USD",
-      "class": "EQ_MEGA",
-      "us": true,
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "LTUR",
-      "ticker": "LTUR.PA",
-      "name": "MSCI Turkey UCITS – LTUR (LU1900067601)",
-      "currency": "EUR",
-      "class": "TURKEY",
-      "alt": [
-        "TUR.PA",
-        "LTUR.MI",
-        "LTUR.DE"
-      ],
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "D5BI",
-      "ticker": "D5BI.DE",
-      "name": "Xtrackers MSCI Mexico UCITS – D5BI",
-      "currency": "EUR",
-      "class": "MEXICO",
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "XFVT",
-      "ticker": "XFVT.DE",
-      "name": "Xtrackers FTSE Vietnam Swap UCITS – XFVT",
-      "currency": "EUR",
-      "class": "VIETNAM",
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "XOP",
-      "ticker": "XOP",
-      "name": "SPDR S&P Oil & Gas Exploration & Production – XOP",
-      "currency": "USD",
-      "class": "OIL",
-      "us": true,
-      "category": "MP_SEC"
-    },
-    {
-      "id": "NRJC",
-      "ticker": "NRJC.PA",
-      "name": "Amundi MSCI New Energy UCITS – NRJC",
-      "currency": "EUR",
-      "class": "NEW_ENERGY",
-      "category": "MP_SEC"
-    },
-    {
-      "id": "NCLR",
-      "ticker": "NCLR.L",
-      "name": "WisdomTree Uranium & Nuclear Energy UCITS – NCLR",
-      "currency": "USD",
-      "class": "URANIUM",
-      "category": "MP_SEC"
-    },
-    {
-      "id": "URA",
-      "ticker": "URA",
-      "name": "Global X Uranium ETF – URA",
-      "currency": "USD",
-      "class": "URANIUM",
-      "us": true,
-      "category": "MP_SEC"
-    },
-    {
-      "id": "LIT",
-      "ticker": "LIT",
-      "name": "Global X Lithium & Battery Tech ETF – LIT",
-      "currency": "USD",
-      "class": "LITHIUM",
-      "us": true,
-      "category": "MP_SEC"
-    },
-    {
-      "id": "AWAT",
-      "ticker": "AWAT.PA",
-      "name": "Amundi MSCI Water UCITS – AWAT",
-      "currency": "EUR",
-      "class": "WATER",
-      "category": "MP_SEC"
-    },
-    {
-      "id": "GOAI",
-      "ticker": "GOAI.PA",
-      "name": "Amundi STOXX Global Artificial Intelligence UCITS – GOAI",
-      "currency": "EUR",
-      "class": "AI",
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "TLT",
-      "ticker": "TLT",
-      "name": "iShares 20+ Year Treasury Bond ETF – TLT",
-      "currency": "USD",
-      "class": "TREASURY",
-      "us": true,
-      "category": "OBLIG"
-    },
-    {
-      "id": "BRKB",
-      "ticker": "BRK-B",
-      "name": "Berkshire Hathaway classe B – BRK.B",
-      "currency": "USD",
-      "class": "BERKSHIRE",
-      "category": "ACT_SEC"
-    },
-    {
-      "id": "AG",
-      "ticker": "SI=F",
-      "name": "Argent – futures SI=F (USD converti en EUR)",
-      "currency": "USD",
-      "class": "SILVER",
-      "category": "OR_SEC",
-      "proxy": true,
-      "alt": [
-        "XAGUSD=X"
-      ]
-    },
-    {
-      "id": "SIL",
-      "ticker": "SIL",
-      "name": "Global X Silver Miners ETF – SIL",
-      "currency": "USD",
-      "class": "SILVER_MINERS",
-      "category": "OR_SEC",
-      "us": true
-    },
-    {
-      "id": "PLATINUM",
-      "ticker": "PL=F",
-      "name": "Platine – futures PL=F (USD converti en EUR)",
-      "currency": "USD",
-      "class": "PLATINUM",
-      "category": "OR_SEC",
-      "proxy": true
-    },
-    {
-      "id": "PALLADIUM",
-      "ticker": "PA=F",
-      "name": "Palladium – futures PA=F (USD converti en EUR)",
-      "currency": "USD",
-      "class": "PALLADIUM",
-      "category": "OR_SEC",
-      "proxy": true
-    },
-    {
-      "id": "COPPER",
-      "ticker": "HG=F",
-      "name": "Cuivre – futures HG=F (USD converti en EUR)",
-      "currency": "USD",
-      "class": "COPPER",
-      "category": "MP_SEC",
-      "proxy": true
-    },
-    {
-      "id": "ETH",
-      "ticker": "ETH-USD",
-      "name": "Ethereum – ETH-USD (USD converti en EUR)",
-      "currency": "USD",
-      "class": "ETH",
-      "category": "CRYPTO"
-    },
-    {
-      "id": "BRENT",
-      "ticker": "BZ=F",
-      "name": "Pétrole Brent – futures BZ=F (USD converti en EUR)",
-      "currency": "USD",
-      "class": "OIL",
-      "category": "MP_SEC",
-      "proxy": true
-    }
-  ],
-  "classes": {
-    "EQ_DEV": "Actions développées (monde / US)",
-    "EQ_MEGA": "Mégacaps tech US",
-    "EQ_SMALL_WORLD": "Petites caps monde",
-    "EQ_SMALL_EU": "Petites caps Europe",
-    "EM_WORLD": "Émergents monde",
-    "EM_ASIA": "Émergents Asie",
-    "TURKEY": "Turquie",
-    "MEXICO": "Mexique",
-    "VIETNAM": "Vietnam",
-    "GOLD": "Or",
-    "GOLD_MINERS": "Mines d'or",
-    "COMMO": "Matières premières",
-    "OIL": "Pétrole & gaz",
-    "NEW_ENERGY": "Énergies nouvelles",
-    "URANIUM": "Uranium & nucléaire",
-    "LITHIUM": "Lithium & batteries",
-    "WATER": "Eau",
-    "AI": "Intelligence artificielle",
-    "TREASURY": "Obligations US long terme",
-    "BERKSHIRE": "Berkshire Hathaway",
-    "BTC": "Bitcoin",
-    "ETH": "Ethereum",
-    "SILVER": "Argent",
-    "SILVER_MINERS": "Mines d'argent",
-    "PLATINUM": "Platine",
-    "PALLADIUM": "Palladium",
-    "COPPER": "Cuivre"
+ "version": "3.0",
+ "source": "Yahoo Finance Chart API",
+ "refreshHours": 6,
+ "historyRange": "2y",
+ "decisionIntervalDays": 15,
+ "decisionAnchor": "2026-10-01",
+ "canaries": [
+  {
+   "id": "EM",
+   "ticker": "VFEA.DE",
+   "name": "Émergents",
+   "currency": "EUR",
+   "role": "canary"
   },
-  "categories": {
-    "ACT_DEV": {
-      "label": "Actions développées (monde / US)",
-      "short": "Actions développées"
-    },
-    "ACT_SEC": {
-      "label": "Actions secondaires dynamiques",
-      "short": "Actions secondaires"
-    },
-    "OR": {
-      "label": "Or",
-      "short": "Or"
-    },
-    "OR_SEC": {
-      "label": "Or secondaire dynamique",
-      "short": "Or secondaire"
-    },
-    "MP": {
-      "label": "Matières premières",
-      "short": "Matières premières"
-    },
-    "MP_SEC": {
-      "label": "Matières premières secondaires dynamiques",
-      "short": "Mat. premières second."
-    },
-    "OBLIG": {
-      "label": "Obligations",
-      "short": "Obligations"
-    },
-    "CRYPTO": {
-      "label": "Cryptomonnaies",
-      "short": "Crypto"
-    }
-  },
-  "canaryBand": 0,
-  "bollinger": {
-    "_aide": "Signal hebdomadaire : bandes de Bollinger sur les clôtures de semaine (semaine en cours exclue). Modifiable sans toucher à la page.",
-    "periodes": 20,
-    "ecartType": 0.75
+  {
+   "id": "TIPS",
+   "ticker": "IDTP.L",
+   "name": "US TIPS",
+   "currency": "USD",
+   "role": "canary"
   }
+ ],
+ "offensive": [
+  {
+   "id": "CW8",
+   "ticker": "CW8.PA",
+   "name": "MSCI World – Amundi CW8",
+   "currency": "EUR",
+   "class": "EQ_DEV",
+   "category": "ACT_DEV"
+  },
+  {
+   "id": "SP500",
+   "ticker": "SPYL.DE",
+   "name": "S&P 500 – SPDR SPYL",
+   "currency": "EUR",
+   "class": "EQ_DEV",
+   "category": "ACT_DEV"
+  },
+  {
+   "id": "PAASI",
+   "ticker": "PAASI.PA",
+   "name": "Asie émergente – Amundi PAASI",
+   "currency": "EUR",
+   "class": "EM_ASIA",
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "GOLD",
+   "ticker": "XAUUSD=X",
+   "name": "Or – cours spot (USD converti en EUR)",
+   "currency": "USD",
+   "proxy": true,
+   "alt": [
+    "GC=F"
+   ],
+   "class": "GOLD",
+   "category": "OR"
+  },
+  {
+   "id": "COMO",
+   "ticker": "COMO.PA",
+   "name": "Matières premières – Amundi COMO",
+   "currency": "EUR",
+   "class": "COMMO",
+   "category": "MP"
+  },
+  {
+   "id": "BTC",
+   "ticker": "BTC-EUR",
+   "name": "Bitcoin EUR",
+   "currency": "EUR",
+   "class": "BTC",
+   "category": "CRYPTO"
+  },
+  {
+   "id": "IEUS",
+   "ticker": "IEUS",
+   "name": "MSCI Europe Small Cap – iShares IEUS",
+   "currency": "USD",
+   "class": "EQ_SMALL_EU",
+   "us": true,
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "GDX",
+   "ticker": "GDX",
+   "name": "Gold Miners – VanEck GDX",
+   "currency": "USD",
+   "class": "GOLD_MINERS",
+   "us": true,
+   "category": "OR_SEC"
+  },
+  {
+   "id": "EEM",
+   "ticker": "EEM",
+   "name": "iShares MSCI Emerging Markets ETF – EEM",
+   "currency": "USD",
+   "class": "EM_WORLD",
+   "us": true,
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "EUNM",
+   "ticker": "EUNM.DE",
+   "name": "iShares MSCI Emerging Markets UCITS – EUNM",
+   "currency": "EUR",
+   "class": "EM_WORLD",
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "AAXJ",
+   "ticker": "AAXJ",
+   "name": "iShares MSCI All Country Asia ex Japan ETF – AAXJ",
+   "currency": "USD",
+   "class": "EM_ASIA",
+   "us": true,
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "IUSN",
+   "ticker": "IUSN.DE",
+   "name": "iShares MSCI World Small Cap UCITS – IUSN",
+   "currency": "EUR",
+   "class": "EQ_SMALL_WORLD",
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "MAGS",
+   "ticker": "MAGS",
+   "name": "Roundhill Magnificent Seven ETF – MAGS",
+   "currency": "USD",
+   "class": "EQ_MEGA",
+   "us": true,
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "LTUR",
+   "ticker": "LTUR.PA",
+   "name": "MSCI Turkey UCITS – LTUR (LU1900067601)",
+   "currency": "EUR",
+   "class": "TURKEY",
+   "alt": [
+    "TUR.PA",
+    "LTUR.MI",
+    "LTUR.DE"
+   ],
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "D5BI",
+   "ticker": "D5BI.DE",
+   "name": "Xtrackers MSCI Mexico UCITS – D5BI",
+   "currency": "EUR",
+   "class": "MEXICO",
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "XFVT",
+   "ticker": "XFVT.DE",
+   "name": "Xtrackers FTSE Vietnam Swap UCITS – XFVT",
+   "currency": "EUR",
+   "class": "VIETNAM",
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "XOP",
+   "ticker": "XOP",
+   "name": "SPDR S&P Oil & Gas Exploration & Production – XOP",
+   "currency": "USD",
+   "class": "OIL",
+   "us": true,
+   "category": "MP_SEC"
+  },
+  {
+   "id": "NRJC",
+   "ticker": "NRJC.PA",
+   "name": "Amundi MSCI New Energy UCITS – NRJC",
+   "currency": "EUR",
+   "class": "NEW_ENERGY",
+   "category": "MP_SEC"
+  },
+  {
+   "id": "NCLR",
+   "ticker": "NCLR.L",
+   "name": "WisdomTree Uranium & Nuclear Energy UCITS – NCLR",
+   "currency": "USD",
+   "class": "URANIUM",
+   "category": "MP_SEC"
+  },
+  {
+   "id": "URA",
+   "ticker": "URA",
+   "name": "Global X Uranium ETF – URA",
+   "currency": "USD",
+   "class": "URANIUM",
+   "us": true,
+   "category": "MP_SEC"
+  },
+  {
+   "id": "LIT",
+   "ticker": "LIT",
+   "name": "Global X Lithium & Battery Tech ETF – LIT",
+   "currency": "USD",
+   "class": "LITHIUM",
+   "us": true,
+   "category": "MP_SEC"
+  },
+  {
+   "id": "AWAT",
+   "ticker": "AWAT.PA",
+   "name": "Amundi MSCI Water UCITS – AWAT",
+   "currency": "EUR",
+   "class": "WATER",
+   "category": "MP_SEC"
+  },
+  {
+   "id": "GOAI",
+   "ticker": "GOAI.PA",
+   "name": "Amundi STOXX Global Artificial Intelligence UCITS – GOAI",
+   "currency": "EUR",
+   "class": "AI",
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "TLT",
+   "ticker": "TLT",
+   "name": "iShares 20+ Year Treasury Bond ETF – TLT",
+   "currency": "USD",
+   "class": "TREASURY",
+   "us": true,
+   "category": "OBLIG"
+  },
+  {
+   "id": "BRKB",
+   "ticker": "BRK-B",
+   "name": "Berkshire Hathaway classe B – BRK.B",
+   "currency": "USD",
+   "class": "BERKSHIRE",
+   "category": "ACT_SEC"
+  },
+  {
+   "id": "AG",
+   "ticker": "SI=F",
+   "name": "Argent – futures SI=F (USD converti en EUR)",
+   "currency": "USD",
+   "class": "SILVER",
+   "category": "OR_SEC",
+   "proxy": true,
+   "alt": [
+    "XAGUSD=X"
+   ]
+  },
+  {
+   "id": "SIL",
+   "ticker": "SIL",
+   "name": "Global X Silver Miners ETF – SIL",
+   "currency": "USD",
+   "class": "SILVER_MINERS",
+   "category": "OR_SEC",
+   "us": true
+  },
+  {
+   "id": "PLATINUM",
+   "ticker": "PL=F",
+   "name": "Platine – futures PL=F (USD converti en EUR)",
+   "currency": "USD",
+   "class": "PLATINUM",
+   "category": "OR_SEC",
+   "proxy": true
+  },
+  {
+   "id": "PALLADIUM",
+   "ticker": "PA=F",
+   "name": "Palladium – futures PA=F (USD converti en EUR)",
+   "currency": "USD",
+   "class": "PALLADIUM",
+   "category": "OR_SEC",
+   "proxy": true
+  },
+  {
+   "id": "COPPER",
+   "ticker": "HG=F",
+   "name": "Cuivre – futures HG=F (USD converti en EUR)",
+   "currency": "USD",
+   "class": "COPPER",
+   "category": "MP_SEC",
+   "proxy": true
+  },
+  {
+   "id": "ETH",
+   "ticker": "ETH-USD",
+   "name": "Ethereum – ETH-USD (USD converti en EUR)",
+   "currency": "USD",
+   "class": "ETH",
+   "category": "CRYPTO"
+  },
+  {
+   "id": "BRENT",
+   "ticker": "BZ=F",
+   "name": "Pétrole Brent – futures BZ=F (USD converti en EUR)",
+   "currency": "USD",
+   "class": "OIL",
+   "category": "MP_SEC",
+   "proxy": true
+  }
+ ],
+ "classes": {
+  "EQ_DEV": "Actions développées (monde / US)",
+  "EQ_MEGA": "Mégacaps tech US",
+  "EQ_SMALL_WORLD": "Petites caps monde",
+  "EQ_SMALL_EU": "Petites caps Europe",
+  "EM_WORLD": "Émergents monde",
+  "EM_ASIA": "Émergents Asie",
+  "TURKEY": "Turquie",
+  "MEXICO": "Mexique",
+  "VIETNAM": "Vietnam",
+  "GOLD": "Or",
+  "GOLD_MINERS": "Mines d'or",
+  "COMMO": "Matières premières",
+  "OIL": "Pétrole & gaz",
+  "NEW_ENERGY": "Énergies nouvelles",
+  "URANIUM": "Uranium & nucléaire",
+  "LITHIUM": "Lithium & batteries",
+  "WATER": "Eau",
+  "AI": "Intelligence artificielle",
+  "TREASURY": "Obligations US long terme",
+  "BERKSHIRE": "Berkshire Hathaway",
+  "BTC": "Bitcoin",
+  "ETH": "Ethereum",
+  "SILVER": "Argent",
+  "SILVER_MINERS": "Mines d'argent",
+  "PLATINUM": "Platine",
+  "PALLADIUM": "Palladium",
+  "COPPER": "Cuivre"
+ },
+ "categories": {
+  "ACT_DEV": {
+   "label": "Actions développées (monde / US)",
+   "short": "Actions développées"
+  },
+  "ACT_SEC": {
+   "label": "Actions secondaires dynamiques",
+   "short": "Actions secondaires"
+  },
+  "OR": {
+   "label": "Or",
+   "short": "Or"
+  },
+  "OR_SEC": {
+   "label": "Or secondaire dynamique",
+   "short": "Or secondaire"
+  },
+  "MP": {
+   "label": "Matières premières",
+   "short": "Matières premières"
+  },
+  "MP_SEC": {
+   "label": "Matières premières secondaires dynamiques",
+   "short": "Mat. premières second."
+  },
+  "OBLIG": {
+   "label": "Obligations",
+   "short": "Obligations"
+  },
+  "CRYPTO": {
+   "label": "Cryptomonnaies",
+   "short": "Crypto"
+  }
+ },
+ "canaryBand": 0,
+ "bollinger": {
+  "_aide": "Bandes de Bollinger sur clôtures hebdomadaires. semaineEnCours : true = la semaine en cours compte avec le dernier cours (provisoire), false = semaines terminées seulement. devise : \"EUR\" = actifs en USD convertis en euros, \"cotation\" = calcul dans la devise de l'ETF (comme sur un graphique en USD).",
+  "periodes": 20,
+  "ecartType": 0.75,
+  "semaineEnCours": true,
+  "devise": "EUR"
+ }
 }
