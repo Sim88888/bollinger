@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Récupère les cours Yahoo Finance des actifs de assets_v3.json -> data.json + data.js (lu par index.html).
-Lancé par GitHub Actions plusieurs fois par jour : ne retélécharge que les cours manquants ou vieux de plus de 20 h.
+Lancé par GitHub Actions toutes les 30 minutes en séance : mise à jour LÉGÈRE (1 mois de cours, fusionné à l'historique) des cours
+vieux de plus de REFRESH_MIN minutes ; historique COMPLET (2 ans) une fois par jour. Le dernier point d'un cours est le cours en direct de Yahoo.
 Yahoo limite les requêtes par adresse IP (erreur 429) : requêtes espacées, abandon rapide si l'IP est bloquée.
 Le script enregistre ce qu'il a obtenu au fil de l'eau et s'arrête de lui-même après un budget de temps (BUDGET_S, 480 s par défaut) :
 un passage incomplet laisse donc des cours utilisables, et le passage suivant reprend par les actifs manquants."""
@@ -8,7 +9,9 @@ import json, os, time, random, datetime, urllib.request, urllib.parse, urllib.er
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FX = "EURUSD=X"
-MAX_AGE = 20 * 3600
+REFRESH_MIN = int(os.environ.get("REFRESH_MIN", "20"))   # un cours plus récent que cela n'est pas redemandé
+MAX_AGE = REFRESH_MIN * 60
+FULL_EVERY = 20 * 3600                                    # historique complet (ajustements de dividendes) au plus une fois par jour
 BUDGET_S = int(os.environ.get("BUDGET_S", "480"))
 SAVE_EVERY = 4
 UAS = [
@@ -20,12 +23,12 @@ BACKOFF = (8, 15, 25)        # attentes (s) après un 429 : au plus 3 essais par
 
 class Blocked(Exception): pass
 
-def fetch(ticker):
+def fetch(ticker, rng="2y"):
     last = None
     for attempt in range(len(BACKOFF)):
         host = ("query1", "query2")[attempt % 2]
-        url = ("https://%s.finance.yahoo.com/v8/finance/chart/%s?range=2y&interval=1d&events=history&includeAdjustedClose=true"
-               % (host, urllib.parse.quote(ticker)))
+        url = ("https://%s.finance.yahoo.com/v8/finance/chart/%s?range=%s&interval=1d&events=history&includeAdjustedClose=true"
+               % (host, rng, urllib.parse.quote(ticker)))
         req = urllib.request.Request(url, headers={
             "User-Agent": random.choice(UAS), "Accept": "application/json,text/plain,*/*",
             "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8", "Referer": "https://finance.yahoo.com/"})
@@ -46,6 +49,19 @@ def fetch(ticker):
     if isinstance(last, urllib.error.HTTPError) and last.code == 429:
         raise Blocked(str(last))
     raise last
+
+def merge(old, new):
+    """Raccorde les cours récents (new) à l'historique (old) : les nouveaux cours sont remis à l'échelle de l'historique
+    à partir d'un jour commun déjà terminé. Renvoie None si le raccord est impossible (-> historique complet)."""
+    if not old or not new: return None
+    olddict = {t: p for t, p in old}
+    ref = None
+    for t, p in reversed(new):
+        if t < old[-1][0] and t in olddict and p:
+            ref = olddict[t] / p; break
+    if ref is None or not (0.5 < ref < 2): return None
+    keep = [b for b in old if b[0] < new[0][0]]
+    return keep + [[t, round(p * ref, 6)] for t, p in new]
 
 def save(cfg, data):
     last = max((v.get("ts", 0) for v in data.values()), default=0) or time.time()
@@ -78,7 +94,7 @@ def main():
     config_changed = prev.get("config") != cfg
     now = time.time()
     missing = [t for t in tickers if "series" not in data.get(t, {})]
-    stale = sorted([t for t in tickers if t not in missing and now - data[t].get("ts", 0) > MAX_AGE], key=lambda t: data[t].get("ts", 0))
+    stale = sorted([t for t in tickers if t not in missing and now - data[t].get("ts", 0) > MAX_AGE], key=lambda t: data[t].get("ts", 0))   # les plus vieux d'abord
     todo = missing + stale                                   # les cours manquants passent avant les cours à rafraîchir
     print("%d ticker(s) à traiter (%d manquants, %d à rafraîchir) sur %d — budget %d s" % (len(todo), len(missing), len(stale), len(tickers), BUDGET_S))
     got, blocked_streak, since_save, stopped = 0, 0, 0, ""
@@ -86,17 +102,27 @@ def main():
         if time.time() - start > BUDGET_S:
             stopped = "budget de temps atteint"; break
         try:
-            try:
-                series = fetch(t)
-            except ValueError:                               # ticker inconnu : on essaie les tickers de secours
-                for alt in alts.get(t, []):
-                    try:
-                        series = fetch(alt); print("      (secours %s utilisé pour %s)" % (alt, t)); break
-                    except ValueError: continue
-                else: raise
-            data[t] = {"series": series, "ts": int(time.time())}
+            old = data.get(t, {})
+            full_ts = old.get("full_ts", old.get("ts", 0)) if "series" in old else 0
+            series, mode, src = None, "complet", t
+            if "series" in old and time.time() - full_ts < FULL_EVERY:      # mise à jour légère : 1 mois de cours fusionné à l'historique
+                try:
+                    series = merge(old["series"], fetch(t, "1mo"))
+                    mode = "léger"
+                except ValueError: series = None
+            if series is None:
+                try:
+                    series = fetch(t)
+                except ValueError:                           # ticker inconnu : on essaie les tickers de secours
+                    for alt in alts.get(t, []):
+                        try:
+                            series = fetch(alt); print("      (secours %s utilisé pour %s)" % (alt, t)); break
+                        except ValueError: continue
+                    else: raise
+                mode = "complet"
+            data[t] = {"series": series, "ts": int(time.time()), "full_ts": int(time.time()) if mode == "complet" else full_ts}
             got += 1; since_save += 1; blocked_streak = 0
-            print("OK    ", t)
+            print("OK    ", t, "(%s)" % mode)
         except Blocked as e:
             blocked_streak += 1
             print("BLOQUÉ", t, e)

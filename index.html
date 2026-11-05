@@ -198,19 +198,19 @@ function loadData(){
   });
 }
 
-async function yahoo(ticker){
+async function yahoo(ticker,keepToday){
   const b=BATCH&&BATCH[ticker];
   if(!b||b.error||!b.series) throw new Error(ticker+" : "+((b&&b.error)||"absent de data.js"));
   const o=b.series.map(([t,p])=>({t,p}));
-  // cours de clôture uniquement : on écarte la séance du jour (cours intraday qui change à chaque mise à jour)
+  // canaris : cours de clôture uniquement (séance du jour écartée). Actifs Bollinger : le dernier cours connu, même intraday, est conservé (vision en temps réel)
   const today=new Date().toISOString().slice(0,10);
-  if(o.length && new Date(o[o.length-1].t*1000).toISOString().slice(0,10)===today) o.pop();
+  if(!keepToday && o.length && new Date(o[o.length-1].t*1000).toISOString().slice(0,10)===today) o.pop();
   if(o.length<210) throw new Error(ticker+" : seulement "+o.length+" séances");
   return o;
 }
 
 async function loadSeries(item, fx){
-  const s=await yahoo(item.ticker);
+  const live=!isCanary(item.id)&&BB().incl, s=await yahoo(item.ticker,live);
   // Convert USD quoted assets to EUR: USD price / EURUSD.
   // For USD assets we fetch the same-date EURUSD series.
   if(item.currency==="USD" && item.role!=="canary" && item.convert!==false && BB().eur){   // les canaris restent dans leur devise de cotation
@@ -339,7 +339,7 @@ async function refresh(force){
   try{
     if(!await loadData()) throw new Error("data.js introuvable : les cours n'ont pas encore été générés (onglet Actions du dépôt GitHub > Run workflow).");
     const all=[...(CONFIG.canaries||[]),...(CONFIG.offensive||[])];
-    const fx=await yahoo(FX_TICKER);
+    const fx=await yahoo(FX_TICKER,BB().incl);
     const results=[];
     for(let i=0;i<all.length;i+=3){
       results.push(...await Promise.allSettled(all.slice(i,i+3).map(x=>loadSeries(x,fx))));
@@ -348,15 +348,15 @@ async function refresh(force){
     for(let i=0;i<all.length;i++){
       const item=all[i], res=results[i];
       if(res.status==="fulfilled"){
-        records.push({...item,series:res.value});
+        records.push({...item,series:res.value,ts:(BATCH[item.ticker]||{}).ts});
       }else{
         records.push({...item,error:res.reason?.message||"erreur"});
       }
     }
     render(records);
     const ok=records.filter(x=>x.series).length;
-    { const lu=$("last-update"), ageH=DATA_DATE?(Date.now()-new Date(DATA_DATE).getTime())/3600000:0, stale=ageH>96;   // plus de 4 jours : week-end et jours fériés exclus
-      lu.textContent=(DATA_DATE?new Date(DATA_DATE).toLocaleString("fr-FR"):"—")+(stale?" ⚠ cours anciens":"");
+    { const lu=$("last-update"), oldest=Math.min(...records.filter(r=>r.ts).map(r=>r.ts*1000)), ageH=isFinite(oldest)?(Date.now()-oldest)/3600000:0, stale=ageH>96;   // plus de 4 jours : week-end et jours fériés exclus
+      lu.textContent=(DATA_DATE?new Date(DATA_DATE).toLocaleString("fr-FR"):"—")+(isFinite(oldest)&&DATA_DATE&&new Date(DATA_DATE).getTime()-oldest>3600e3?" · cours le plus ancien : "+new Date(oldest).toLocaleString("fr-FR"):"")+(stale?" ⚠ cours anciens":"");
       lu.className=stale?"text-rose-400 font-bold":"";
       lu.title=stale?"Les cours n'ont pas été rafraîchis depuis plus de 4 jours : consultez l'onglet Actions du dépôt GitHub.":""; }
     $("data-status").textContent=`${ok}/${records.length}`;
@@ -708,7 +708,7 @@ function nextDecision(){
 $("refreshBtn").addEventListener("click",()=>refresh(true));
 
 refresh();
-setInterval(()=>refresh(),3600*1000);
+setInterval(()=>refresh(),600*1000);   // recharge les cours toutes les 10 minutes (data.js est mis à jour par GitHub Actions)
 </script>
 </body>
 </html>
