@@ -430,9 +430,9 @@ function snapshot(records,cutoff){
   const red=canaries.filter(z=>z.state==="ROUGE").length;
   const off=[], rank={ACHAT:0,WATCH:1,VENDRE:2};
   for(const x of records.filter(r=>isOff(r.id)&&r.series)){
-    const b=bollinger(x.series,cutoff); if(b) off.push({x,b,signal:b.signal});
+    const b=bollinger(x.series,cutoff); if(b){ const lastT=x.series[x.series.length-1].t; off.push({x,b,signal:b.signal,lastT,stale:!cutoff&&(Date.now()/1000-lastT)>4*86400}); }
   }
-  off.sort((a,b)=>rank[a.signal]-rank[b.signal]||(a.signal==="VENDRE"?b.b.vsMid-a.b.vsMid:b.b.vsUp-a.b.vsUp));
+  off.sort((a,b)=>(a.stale-b.stale)||rank[a.signal]-rank[b.signal]||(a.signal==="VENDRE"?b.b.vsMid-a.b.vsMid:b.b.vsUp-a.b.vsUp));
   return {red,canaries,off};
 }
 
@@ -505,6 +505,7 @@ function renderProducts(buys){
 
 function render(records){
   const cur=snapshot(records,null);
+  const fresh=cur.off.filter(o=>!o.stale), outdated=cur.off.filter(o=>o.stale);   // cours pas à jour : affichés pour information seulement
   const nowSec=Date.now()/1000;
   const dd=prevDecision();
   const refDec=snapshot(records,dd.getTime()/1000+86399);        // signaux à la décision précédente
@@ -516,11 +517,11 @@ function render(records){
   const {n:bbN,k:bbK}=BB();
   { const p=BB(); $("bb-params").textContent=`${bbN} sem. · ${String(bbK).replace(".",",")} σ · ${p.eur?"cours en EUR":"devise de cotation"} · ${p.incl?"semaine en cours incluse (provisoire)":"semaines terminées uniquement"}`; } $("bb-n").textContent=bbN; $("bb-k").textContent=String(bbK).replace(".",",");
   const sells=[], newBuys=[];
-  cur.off.forEach(o=>{ const ps=prevSig[o.x.id]; if(!ps) return;
+  fresh.forEach(o=>{ const ps=prevSig[o.x.id]; if(!ps) return;
     if(o.signal==="VENDRE"&&ps!=="VENDRE") sells.push({o,ps});
     if(o.signal==="ACHAT"&&ps!=="ACHAT") newBuys.push(o); });
   const sellMap=new Map(sells.map(z=>[z.o,z.ps])), newSet=new Set(newBuys);
-  const buys=cur.off.filter(o=>o.signal==="ACHAT");
+  const buys=fresh.filter(o=>o.signal==="ACHAT");
   const badge=sig=>{ const c=sig==="ACHAT"?"text-emerald-400 bg-emerald-500/10 border-emerald-500/30":sig==="WATCH"?"text-amber-400 bg-amber-500/10 border-amber-500/30":"text-rose-400 bg-rose-500/10 border-rose-500/30";
     return `<span class="border px-2.5 py-1 rounded-full text-xs font-bold ${c}">${sig}</span>`; };
   const upCell=b=>`<span class="${b.vsUp>0?"text-emerald-400":"text-slate-300"} font-semibold">${sp(b.vsUp)}</span>`;
@@ -528,8 +529,8 @@ function render(records){
 
   // ── Tableau « Rotation offensive » : actifs à acheter + actifs passés à VENDRE
   $("ref-decision-label").textContent=`Changements comparés à la décision du ${fdate(dd)}.`;
-  const rows=cur.off.filter(o=>o.signal==="ACHAT"||sellMap.has(o));
-  $("rotation-count").textContent=`${buys.length} à acheter · ${sells.length} passé(s) à VENDRE · ${cur.off.length} actifs suivis`;
+  const rows=fresh.filter(o=>o.signal==="ACHAT"||sellMap.has(o));
+  $("rotation-count").textContent=`${buys.length} à acheter · ${sells.length} passé(s) à VENDRE · ${fresh.length} actifs à jour${outdated.length?` · ${outdated.length} pour information`:""}`;
   $("asset-body").innerHTML=rows.length?"":`<tr><td colspan="7" class="py-6 px-3 text-center text-slate-400">Aucun actif à acheter ni nouveau signal VENDRE pour le moment.</td></tr>`;
   rows.forEach(o=>{
     const sell=sellMap.has(o), b=o.b;
@@ -548,16 +549,18 @@ function render(records){
   // ── Tous les actifs suivis : toujours affichés (signaux, puis actifs sans cours ou sans historique suffisant)
   const noData=records.filter(r=>isOff(r.id)&&!r.series);
   const shortHist=records.filter(r=>isOff(r.id)&&r.series&&!cur.off.some(o=>o.x.id===r.id));
-  $("all-count").textContent=`${cur.off.length} avec signal sur ${cur.off.length+shortHist.length+noData.length}`;
+  $("all-count").textContent=`${fresh.length} à jour sur ${cur.off.length+shortHist.length+noData.length}`;
   const status=o=>sellMap.has(o)?`<b class="text-rose-400">VENDRE</b> <span class="text-xs text-slate-500">(${sellMap.get(o)} → VENDRE)</span>`
     :o.signal==="ACHAT"?`<span class="text-emerald-300">Acheter</span>${newSet.has(o)?' <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-1.5 py-0.5 rounded">NOUVEAU</span>':""}`
     :o.signal==="WATCH"?'<span class="text-amber-300">Conserver, ne pas renforcer</span>':'<span class="text-slate-400">Vendre si détenu</span>';
-  let allRows=cur.off.map((o,i)=>`<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${badge(o.signal)}</td><td class="py-1.5 px-3 text-right">${midCell(o.b)}</td><td class="py-1.5 px-3 text-right text-slate-300">${o.b.weeks} sem.</td><td class="py-1.5 px-3 text-xs">${status(o)}</td></tr>`).join("");
+  let allRows=fresh.map((o,i)=>`<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${badge(o.signal)}</td><td class="py-1.5 px-3 text-right">${midCell(o.b)}</td><td class="py-1.5 px-3 text-right text-slate-300">${o.b.weeks} sem.</td><td class="py-1.5 px-3 text-xs">${status(o)}</td></tr>`).join("");
   const dash=`<td class="py-1.5 px-3 text-right text-slate-600">—</td>`;
+  const infoBadge=sig=>`<span class="inline-block bg-slate-300 text-black text-[10px] font-semibold px-1.5 py-0.5 rounded">${sig}</span>`;   // signal indicatif : petit, noir sur fond clair
+  allRows+=outdated.map(o=>`<tr class="opacity-80"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${infoBadge(o.signal)}</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-slate-400">Cours non à jour (dernier : ${new Date(o.lastT*1000).toLocaleDateString("fr-FR")}) — signal pour information</td></tr>`).join("");
   allRows+=shortHist.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-amber-400">Historique insuffisant (moins de ${bbN+1} semaines de cours)</td></tr>`).join("");
   allRows+=noData.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-rose-400">Pas de cours : ${m.error}</td></tr>`).join("");
   $("all-body").innerHTML=allRows;
-  $("all-errors").innerHTML=(noData.length||shortHist.length)?`<div class="text-xs text-slate-400 mt-2">Les actifs sans cours ou sans historique suffisant n'ont pas de signal (récupération automatique, plusieurs passages par jour).</div>`:"";
+  $("all-errors").innerHTML=(noData.length||shortHist.length||outdated.length)?`<div class="text-xs text-slate-400 mt-2">Les actifs sans cours à jour (dernier cours de plus de 4 jours) ou sans historique suffisant sont indiqués pour information et ne comptent ni dans les alertes ni dans les achats ; les cours se rafraîchissent automatiquement.</div>`:"";
 
   // ── Bandeau d'alerte
   const box=$("alert-box");
@@ -571,7 +574,7 @@ function render(records){
 
   // ── Produits (actifs en ACHAT) + répartition des signaux
   renderProducts(buys);
-  $("n-buy").textContent=buys.length; $("n-watch").textContent=cur.off.filter(o=>o.signal==="WATCH").length; $("n-sell").textContent=cur.off.filter(o=>o.signal==="VENDRE").length;
+  $("n-buy").textContent=buys.length; $("n-watch").textContent=fresh.filter(o=>o.signal==="WATCH").length; $("n-sell").textContent=fresh.filter(o=>o.signal==="VENDRE").length;
   renderManager();
 }
 
