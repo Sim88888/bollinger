@@ -11,7 +11,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FX = "EURUSD=X"
 REFRESH_MIN = int(os.environ.get("REFRESH_MIN", "20"))   # un cours plus récent que cela n'est pas redemandé
 MAX_AGE = REFRESH_MIN * 60
-FULL_EVERY = 20 * 3600                                    # historique complet (ajustements de dividendes) au plus une fois par jour
+FULL_EVERY = 7 * 86400                                    # historique complet (2 ans) au plus une fois par semaine
+MAX_PER_RUN = int(os.environ.get("MAX_PER_RUN", "12"))    # au plus 12 actifs par passage (les plus anciens d'abord) : moins de requêtes d'un coup = moins de blocages Yahoo
+STOP_AFTER = 3                                            # arrêt après 3 échecs consécutifs : on ne s'acharne pas sur une adresse limitée
 BUDGET_S = int(os.environ.get("BUDGET_S", "480"))
 SAVE_EVERY = 4
 UAS = [
@@ -95,7 +97,7 @@ def main():
     now = time.time()
     missing = [t for t in tickers if "series" not in data.get(t, {})]
     stale = sorted([t for t in tickers if t not in missing and now - data[t].get("ts", 0) > MAX_AGE], key=lambda t: data[t].get("ts", 0))   # les plus vieux d'abord
-    todo = missing + stale                                   # les cours manquants passent avant les cours à rafraîchir
+    todo = (missing + stale)[:MAX_PER_RUN]                   # les cours manquants passent avant les cours à rafraîchir
     print("%d ticker(s) à traiter (%d manquants, %d à rafraîchir) sur %d — budget %d s" % (len(todo), len(missing), len(stale), len(tickers), BUDGET_S))
     got, blocked_streak, since_save, stopped, fails = 0, 0, 0, "", []
     for t in todo:
@@ -103,13 +105,16 @@ def main():
             stopped = "budget de temps atteint"; break
         try:
             old = data.get(t, {})
-            full_ts = old.get("full_ts", old.get("ts", 0)) if "series" in old else 0
-            series, mode, src = None, "complet", t
-            if "series" in old and time.time() - full_ts < FULL_EVERY:      # mise à jour légère : 1 mois de cours fusionné à l'historique
+            full_ts = (old.get("full_ts") or time.time()) if "series" in old else 0      # historique existant : considéré comme complet
+            series, mode = None, "complet"
+            if "series" in old and time.time() - full_ts < FULL_EVERY:      # mise à jour légère : quelques semaines de cours fusionnées à l'historique
+                age_j = (time.time() - old["series"][-1][0]) / 86400
+                rng = "1mo" if age_j < 24 else "3mo" if age_j < 80 else "6mo" if age_j < 170 else "2y"
                 try:
-                    series = merge(old["series"], fetch(t, "1mo"))
-                    mode = "léger"
-                except ValueError: series = None
+                    series = merge(old["series"], fetch(t, rng))
+                except ValueError:                           # un actif déjà connu qui répond « inconnu » (404) : Yahoo limite l'adresse, on ne redemande pas
+                    raise Blocked("réponse 404 sur un actif connu (limitation Yahoo)")
+                mode = "léger"
             if series is None:
                 try:
                     series = fetch(t)
@@ -120,17 +125,21 @@ def main():
                         except ValueError: continue
                     else: raise
                 mode = "complet"
-            data[t] = {"series": series, "ts": int(time.time()), "full_ts": int(time.time()) if mode == "complet" else full_ts}
+            data[t] = {"series": series, "ts": int(time.time()), "full_ts": int(time.time()) if mode == "complet" else int(full_ts)}
             got += 1; since_save += 1; blocked_streak = 0
             print("OK    ", t, "(%s)" % mode)
         except Blocked as e:
             blocked_streak += 1
             print("BLOQUÉ", t, e); fails.append("%s: %s" % (t, e))
-            if blocked_streak >= 2:
+            if blocked_streak >= STOP_AFTER:
                 stopped = "Yahoo refuse cette adresse IP"; break
         except Exception as e:
             print("ECHEC ", t, e); fails.append("%s: %s" % (t, e))
             data.setdefault(t, {"error": str(e)})
+            if "series" in data[t]:                          # actif déjà connu qui échoue : compte comme un blocage
+                blocked_streak += 1
+                if blocked_streak >= STOP_AFTER:
+                    stopped = "échecs consécutifs"; break
         if since_save >= SAVE_EVERY:                         # enregistrement intermédiaire
             save(cfg, data); since_save = 0
         time.sleep(random.uniform(1.5, 3.0))
