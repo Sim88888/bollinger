@@ -25,17 +25,19 @@ BACKOFF = (8, 15, 25)        # attentes (s) après un 429 : au plus 3 essais par
 
 class Blocked(Exception): pass
 
+def _get(url, timeout=20):
+    req = urllib.request.Request(url, headers={"User-Agent": random.choice(UAS), "Accept": "application/json,text/plain,*/*",
+                                               "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8", "Referer": "https://finance.yahoo.com/"})
+    return urllib.request.urlopen(req, timeout=timeout)
+
 def fetch(ticker, rng="2y"):
     last = None
     for attempt in range(len(BACKOFF)):
         host = ("query1", "query2")[attempt % 2]
         url = ("https://%s.finance.yahoo.com/v8/finance/chart/%s?range=%s&interval=1d&events=history&includeAdjustedClose=true"
-               % (host, rng, urllib.parse.quote(ticker)))
-        req = urllib.request.Request(url, headers={
-            "User-Agent": random.choice(UAS), "Accept": "application/json,text/plain,*/*",
-            "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8", "Referer": "https://finance.yahoo.com/"})
+               % (host, urllib.parse.quote(ticker), rng))
         try:
-            q = json.loads(urllib.request.urlopen(req, timeout=20).read())["chart"]["result"][0]
+            q = json.loads(_get(url).read())["chart"]["result"][0]
             ind = q["indicators"]
             c = (ind.get("adjclose") or [{}])[0].get("adjclose") or ind["quote"][0]["close"]
             series = [[t, round(p, 6)] for t, p in zip(q.get("timestamp") or [], c) if p is not None]
@@ -44,7 +46,10 @@ def fetch(ticker, rng="2y"):
         except urllib.error.HTTPError as e:
             last = e
             if e.code == 429: time.sleep(BACKOFF[attempt])
-            elif e.code == 404: raise ValueError("ticker inconnu (404)")
+            elif e.code == 404:
+                try: body = e.read().decode("utf-8", "ignore").replace("\n", " ")[:160]
+                except Exception: body = ""
+                raise ValueError("ticker inconnu (404) %s" % body)
             else: time.sleep(3)
         except Exception as e:
             last = e; time.sleep(3)
