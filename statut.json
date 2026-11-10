@@ -1,13 +1,12 @@
 {
- "passage": "2026-11-10T07:28:00+00:00",
- "mis_a_jour": 0,
+ "passage": "2026-11-10T07:48:28+00:00",
+ "mis_a_jour": 10,
  "disponibles": 35,
  "total": 35,
- "arret": "Yahoo refuse cette adresse IP",
+ "arret": null,
  "erreurs": [
-  "PA=F: réponse 404 sur un actif connu (limitation Yahoo)",
-  "EEM: réponse 404 sur un actif connu (limitation Yahoo)",
-  "LIT: réponse 404 sur un actif connu (limitation Yahoo)"
+  "IUSN.DE: HTTP Error 429: Too Many Requests",
+  "EURUSD=X: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
