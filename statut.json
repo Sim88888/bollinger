@@ -1,17 +1,13 @@
 {
- "passage": "2026-11-10T07:14:33+00:00",
+ "passage": "2026-11-10T07:28:00+00:00",
  "mis_a_jour": 0,
  "disponibles": 35,
  "total": 35,
  "arret": "Yahoo refuse cette adresse IP",
  "erreurs": [
-  "PA=F: ticker inconnu (404)",
-  "EEM: ticker inconnu (404)",
-  "LIT: ticker inconnu (404)",
-  "AWAT.PA: HTTP Error 429: Too Many Requests",
-  "COMO.PA: ticker inconnu (404)",
-  "XFVT.DE: ticker inconnu (404)",
-  "SIL: HTTP Error 429: Too Many Requests"
+  "PA=F: réponse 404 sur un actif connu (limitation Yahoo)",
+  "EEM: réponse 404 sur un actif connu (limitation Yahoo)",
+  "LIT: réponse 404 sur un actif connu (limitation Yahoo)"
  ],
  "sans_cours": []
 }
