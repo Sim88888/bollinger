@@ -97,7 +97,7 @@ def main():
     stale = sorted([t for t in tickers if t not in missing and now - data[t].get("ts", 0) > MAX_AGE], key=lambda t: data[t].get("ts", 0))   # les plus vieux d'abord
     todo = missing + stale                                   # les cours manquants passent avant les cours à rafraîchir
     print("%d ticker(s) à traiter (%d manquants, %d à rafraîchir) sur %d — budget %d s" % (len(todo), len(missing), len(stale), len(tickers), BUDGET_S))
-    got, blocked_streak, since_save, stopped = 0, 0, 0, ""
+    got, blocked_streak, since_save, stopped, fails = 0, 0, 0, "", []
     for t in todo:
         if time.time() - start > BUDGET_S:
             stopped = "budget de temps atteint"; break
@@ -125,11 +125,11 @@ def main():
             print("OK    ", t, "(%s)" % mode)
         except Blocked as e:
             blocked_streak += 1
-            print("BLOQUÉ", t, e)
+            print("BLOQUÉ", t, e); fails.append("%s: %s" % (t, e))
             if blocked_streak >= 2:
                 stopped = "Yahoo refuse cette adresse IP"; break
         except Exception as e:
-            print("ECHEC ", t, e)
+            print("ECHEC ", t, e); fails.append("%s: %s" % (t, e))
             data.setdefault(t, {"error": str(e)})
         if since_save >= SAVE_EVERY:                         # enregistrement intermédiaire
             save(cfg, data); since_save = 0
@@ -139,6 +139,11 @@ def main():
     absent = [t for t in tickers if "series" not in data.get(t, {})]
     if absent: print("Sans cours pour l'instant :", ", ".join(absent))
     write_summary(have, len(tickers), got, absent, stopped, max((v.get("ts", 0) for v in data.values()), default=0))
+    try:    # fichier de diagnostic enregistré à chaque passage (lisible dans le dépôt, sans ouvrir les journaux)
+        json.dump({"passage": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"), "mis_a_jour": got, "disponibles": have,
+                   "total": len(tickers), "arret": stopped or None, "erreurs": fails[:8], "sans_cours": absent},
+                  open(os.path.join(HERE, "statut.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    except Exception: pass
     if got or (config_changed and have):
         save(cfg, data)
     elif have == 0:
