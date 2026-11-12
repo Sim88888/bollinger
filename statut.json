@@ -1,13 +1,17 @@
 {
- "passage": "2026-11-12T15:01:32+00:00",
- "mis_a_jour": 9,
+ "passage": "2026-11-12T18:14:24+00:00",
+ "mis_a_jour": 5,
  "disponibles": 35,
  "total": 35,
  "arret": null,
  "erreurs": [
-  "LTUR.PA: HTTP Error 429: Too Many Requests",
+  "LTUR.PA: réponse 404 sur un actif connu (limitation Yahoo)",
   "XAUUSD=X: réponse 404 sur un actif connu (limitation Yahoo)",
-  "AWAT.PA: HTTP Error 429: Too Many Requests"
+  "ETH-USD: HTTP Error 429: Too Many Requests",
+  "D5BI.DE: HTTP Error 429: Too Many Requests",
+  "MAGS: HTTP Error 429: Too Many Requests",
+  "URA: HTTP Error 429: Too Many Requests",
+  "GOAI.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
