@@ -32,9 +32,9 @@
   },
   {
    "id": "SP500",
-   "ticker": "SPYL.DE",
-   "name": "S&P 500 – SPDR SPYL",
-   "currency": "EUR",
+   "ticker": "^GSPC",
+   "name": "S&P 500 – indice US78378X1072",
+   "currency": "USD",
    "class": "EQ_DEV",
    "category": "ACT_DEV"
   },
@@ -371,10 +371,10 @@
  },
  "canaryBand": 0,
  "bollinger": {
-  "_aide": "Bandes de Bollinger sur clôtures hebdomadaires. semaineEnCours : true = la semaine en cours compte avec le dernier cours (provisoire), false = semaines terminées seulement. devise : \"EUR\" = actifs en USD convertis en euros, \"cotation\" = calcul dans la devise de l'ETF (comme sur un graphique en USD).",
+  "_aide": "Bandes de Bollinger sur clôtures hebdomadaires. semaineEnCours : true = la semaine en cours compte avec le dernier cours (provisoire), false = semaines terminées seulement. devise : \"cotation\" = calcul dans la devise de l'actif (comme sur un graphique en USD) ; \"EUR\" = actifs en USD convertis en euros.",
   "periodes": 20,
   "ecartType": 0.75,
   "semaineEnCours": true,
-  "devise": "EUR"
+  "devise": "cotation"
  }
 }
