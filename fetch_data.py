@@ -13,6 +13,7 @@ REFRESH_MIN = int(os.environ.get("REFRESH_MIN", "20"))   # un cours plus récent
 MAX_AGE = REFRESH_MIN * 60
 FULL_EVERY = 7 * 86400                                    # historique complet (2 ans) au plus une fois par semaine
 MAX_PER_RUN = int(os.environ.get("MAX_PER_RUN", "12"))    # au plus 12 actifs par passage (les plus anciens d'abord) : moins de requêtes d'un coup = moins de blocages Yahoo
+HARD_MAX = 24                                             # plafond de sécurité par passage
 STOP_AFTER = 3                                            # arrêt après 3 échecs consécutifs : on ne s'acharne pas sur une adresse limitée
 BUDGET_S = int(os.environ.get("BUDGET_S", "480"))
 SAVE_EVERY = 4
@@ -101,46 +102,67 @@ def main():
     config_changed = prev.get("config") != cfg
     now = time.time()
     missing = [t for t in tickers if "series" not in data.get(t, {})]
-    stale = sorted([t for t in tickers if t not in missing and now - data[t].get("ts", 0) > MAX_AGE], key=lambda t: data[t].get("ts", 0))   # les plus vieux d'abord
-    todo = (missing + stale)[:MAX_PER_RUN]                   # les cours manquants passent avant les cours à rafraîchir
+    def penalise(t):    # 2 échecs consécutifs récents : on laisse passer les autres actifs d'abord
+        return data[t].get("fails", 0) >= 2 and now - data[t].get("fail_ts", 0) < 3600
+    stale = sorted([t for t in tickers if t not in missing and now - data[t].get("ts", 0) > MAX_AGE], key=lambda t: (penalise(t), data[t].get("ts", 0)))   # les plus vieux d'abord
+    todo = missing + stale                                   # les cours manquants passent avant les cours à rafraîchir
     print("%d ticker(s) à traiter (%d manquants, %d à rafraîchir) sur %d — budget %d s" % (len(todo), len(missing), len(stale), len(tickers), BUDGET_S))
-    got, blocked_streak, since_save, stopped, fails = 0, 0, 0, "", []
+    got, blocked_streak, since_save, stopped, fails, dirty = 0, 0, 0, "", [], False
+    retry = []
+
+    def update(t):
+        """Met à jour un actif ; lève Blocked / une autre exception en cas d'échec."""
+        old = data.get(t, {})
+        full_ts = (old.get("full_ts") or time.time()) if "series" in old else 0      # historique existant : considéré comme complet
+        series, mode = None, "complet"
+        if "series" in old and time.time() - full_ts < FULL_EVERY:      # mise à jour légère : quelques semaines de cours fusionnées à l'historique
+            age_j = (time.time() - old["series"][-1][0]) / 86400
+            rng = "1mo" if age_j < 24 else "3mo" if age_j < 80 else "6mo" if age_j < 170 else "2y"
+            try:
+                series = merge(old["series"], fetch(t, rng))
+            except ValueError as e:                          # un actif déjà connu qui répond « inconnu » (404) : on ne redemande pas
+                raise Blocked("réponse 404 sur un actif connu : %s" % str(e)[:150])
+            mode = "léger"
+        if series is None:
+            try:
+                series = fetch(t)
+            except ValueError:                               # ticker inconnu : on essaie les tickers de secours
+                for alt in alts.get(t, []):
+                    try:
+                        series = fetch(alt); print("      (secours %s utilisé pour %s)" % (alt, t)); break
+                    except ValueError: continue
+                else: raise
+            mode = "complet"
+        data[t] = {"series": series, "ts": int(time.time()), "full_ts": int(time.time()) if mode == "complet" else int(full_ts)}
+        return mode
+
+    def failed(t, e):
+        """Mémorise l'échec (un actif qui échoue plusieurs fois de suite passe après les autres au passage suivant)."""
+        nonlocal dirty
+        fails.append("%s: %s" % (t, e))
+        if "series" in data.get(t, {}):
+            data[t]["fails"] = data[t].get("fails", 0) + 1; data[t]["fail_ts"] = int(time.time()); dirty = True
+        else:
+            data.setdefault(t, {"error": str(e)})
+
+    processed = 0
     for t in todo:
         if time.time() - start > BUDGET_S:
             stopped = "budget de temps atteint"; break
+        if processed >= MAX_PER_RUN and (fails or processed >= HARD_MAX):   # au-delà de 12 actifs seulement si Yahoo répond sans le moindre refus
+            break
+        processed += 1
         try:
-            old = data.get(t, {})
-            full_ts = (old.get("full_ts") or time.time()) if "series" in old else 0      # historique existant : considéré comme complet
-            series, mode = None, "complet"
-            if "series" in old and time.time() - full_ts < FULL_EVERY:      # mise à jour légère : quelques semaines de cours fusionnées à l'historique
-                age_j = (time.time() - old["series"][-1][0]) / 86400
-                rng = "1mo" if age_j < 24 else "3mo" if age_j < 80 else "6mo" if age_j < 170 else "2y"
-                try:
-                    series = merge(old["series"], fetch(t, rng))
-                except ValueError:                           # un actif déjà connu qui répond « inconnu » (404) : Yahoo limite l'adresse, on ne redemande pas
-                    raise Blocked("réponse 404 sur un actif connu (limitation Yahoo)")
-                mode = "léger"
-            if series is None:
-                try:
-                    series = fetch(t)
-                except ValueError:                           # ticker inconnu : on essaie les tickers de secours
-                    for alt in alts.get(t, []):
-                        try:
-                            series = fetch(alt); print("      (secours %s utilisé pour %s)" % (alt, t)); break
-                        except ValueError: continue
-                    else: raise
-                mode = "complet"
-            data[t] = {"series": series, "ts": int(time.time()), "full_ts": int(time.time()) if mode == "complet" else int(full_ts)}
+            mode = update(t)
             got += 1; since_save += 1; blocked_streak = 0
             print("OK    ", t, "(%s)" % mode)
         except Blocked as e:
-            blocked_streak += 1
-            print("BLOQUÉ", t, e); fails.append("%s: %s" % (t, e))
+            blocked_streak += 1; retry.append(t)
+            print("BLOQUÉ", t, e); failed(t, e)
             if blocked_streak >= STOP_AFTER:
                 stopped = "Yahoo refuse cette adresse IP"; break
         except Exception as e:
-            print("ECHEC ", t, e); fails.append("%s: %s" % (t, e))
-            data.setdefault(t, {"error": str(e)})
+            print("ECHEC ", t, e); failed(t, e)
             if "series" in data[t]:                          # actif déjà connu qui échoue : compte comme un blocage
                 blocked_streak += 1
                 if blocked_streak >= STOP_AFTER:
@@ -148,6 +170,16 @@ def main():
         if since_save >= SAVE_EVERY:                         # enregistrement intermédiaire
             save(cfg, data); since_save = 0
         time.sleep(random.uniform(1.5, 3.0))
+    # seconde chance : les actifs refusés sont redemandés une fois après une pause, si Yahoo n'a pas coupé l'accès
+    if retry and not stopped and time.time() - start < BUDGET_S - 120:
+        print("Pause de 45 s puis seconde chance pour : %s" % ", ".join(retry)); time.sleep(45)
+        for t in retry:
+            if time.time() - start > BUDGET_S: break
+            try:
+                mode = update(t); got += 1; print("OK    ", t, "(%s, 2e essai)" % mode)
+            except Exception as e:
+                print("ECHEC ", t, "(2e essai)", e)
+            time.sleep(random.uniform(2.0, 4.0))
     have = sum(1 for v in data.values() if "series" in v)
     print("%d/%d tickers disponibles (%d mis à jour)%s" % (have, len(tickers), got, " — arrêt : " + stopped + " (reprise au prochain passage)" if stopped else ""))
     absent = [t for t in tickers if "series" not in data.get(t, {})]
@@ -155,10 +187,10 @@ def main():
     write_summary(have, len(tickers), got, absent, stopped, max((v.get("ts", 0) for v in data.values()), default=0))
     try:    # fichier de diagnostic enregistré à chaque passage (lisible dans le dépôt, sans ouvrir les journaux)
         json.dump({"passage": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"), "mis_a_jour": got, "disponibles": have,
-                   "total": len(tickers), "arret": stopped or None, "erreurs": fails[:8], "sans_cours": absent},
+                   "total": len(tickers), "en_retard": sum(1 for t in tickers if time.time() - data.get(t, {}).get("ts", 0) > 45 * 60), "arret": stopped or None, "erreurs": fails[:8], "sans_cours": absent},
                   open(os.path.join(HERE, "statut.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     except Exception: pass
-    if got or (config_changed and have):
+    if got or dirty or (config_changed and have):
         save(cfg, data)
     elif have == 0:
         raise SystemExit("Aucun cours disponible pour l'instant.")

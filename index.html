@@ -22,7 +22,7 @@
   <div class="flex flex-wrap justify-center items-center gap-2 text-xs">
     <button id="refreshBtn" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg font-semibold"><i class="fa-solid fa-rotate mr-1"></i> Actualiser</button>
     <div class="bg-slate-900/60 px-3 py-2 rounded-lg border border-slate-700">
-      <span class="text-slate-400">Dernière mise à jour :</span> <span id="last-update">—</span>
+      <span class="text-slate-400">Dernière mise à jour :</span> <span id="last-update">—</span> <span id="clock-note" class="ml-2 whitespace-nowrap"></span>
     </div>
   </div>
 </div>
@@ -359,6 +359,9 @@ async function refresh(force){
       lu.textContent=(DATA_DATE?new Date(DATA_DATE).toLocaleString("fr-FR"):"—")+(isFinite(oldest)&&DATA_DATE&&new Date(DATA_DATE).getTime()-oldest>3600e3?" · cours le plus ancien : "+new Date(oldest).toLocaleString("fr-FR"):"")+(stale?" ⚠ cours anciens":"");
       lu.className=stale?"text-rose-400 font-bold":"";
       lu.title=stale?"Les cours n'ont pas été rafraîchis depuis plus de 4 jours : consultez l'onglet Actions du dépôt GitHub.":""; }
+    { const nOld=records.filter(r=>r.ts&&ageH(r.ts)>OLD_H).length, cn=$("clock-note");
+      cn.innerHTML=nOld?`<span class="${records.some(r=>r.ts&&ageH(r.ts)>24)?"text-rose-400":"text-amber-400"} font-bold cursor-help" title="Actifs dont le dernier téléchargement date de plus de ${OLD_H} h de séance : l'horloge s'affiche à côté de chacun. Les passages automatiques les rafraîchissent un peu plus tard."><i class="fa-regular fa-clock"></i> ${nOld} actif${nOld>1?"s":""} pas à jour</span>`
+        :`<span class="text-emerald-400 font-bold"><i class="fa-regular fa-circle-check"></i> cours à jour</span>`; }
     $("data-status").textContent=`${ok}/${records.length}`;
   }catch(e){
     $("last-update").textContent="ERREUR";
@@ -380,6 +383,20 @@ const catInfo=c=>cats()[c]||{label:c,short:c};
 const isCanary=id=>(CONFIG.canaries||[]).some(c=>c.id===id);
 const isOff=id=>(CONFIG.offensive||[]).some(c=>c.id===id);
 const fdate=d=>d.toLocaleDateString("fr-FR");
+// Fraîcheur : âge du dernier téléchargement, mesuré par rapport à l'heure de référence des marchés (les nuits et week-ends ne comptent pas)
+function refTime(now=new Date()){
+  const close=x=>{const c=new Date(x); c.setUTCHours(22,15,0,0); return c;};
+  const day=now.getUTCDay(), h=now.getUTCHours()+now.getUTCMinutes()/60;
+  const x=new Date(now);
+  if(day>=1&&day<=5){ if(h>=22.25) return close(x); if(h>=6) return now; x.setUTCDate(x.getUTCDate()-1); }
+  while(x.getUTCDay()===0||x.getUTCDay()===6) x.setUTCDate(x.getUTCDate()-1);
+  return close(x);
+}
+const ageH=ts=>ts?Math.max(0,(refTime().getTime()-ts*1000)/3600000):0;
+const OLD_H=3;                                   // au-delà de 3 h (hors nuits et week-ends), le cours est signalé « pas à jour »
+const fage=h=>h<48?Math.round(h)+" h":Math.round(h/24)+" j";
+const clock=x=>{ const a=ageH(x&&x.ts); if(!x||!x.ts||a<=OLD_H) return "";
+  return ` <span class="text-[11px] whitespace-nowrap ${a>24?"text-rose-400":"text-amber-400"} cursor-help" title="Cours pas à jour : téléchargé le ${new Date(x.ts*1000).toLocaleString("fr-FR")} (il y a ${fage(a)} de séance)"><i class="fa-regular fa-clock"></i> ${fage(a)}</span>`; };
 const sp=(v,d=1)=>(v>=0?"+":"")+v.toFixed(d).replace(".",",")+" %";
 
 // ───────── Signal : bandes de Bollinger sur clôtures de semaine ─────────
@@ -537,7 +554,7 @@ function render(records){
     const action=sell?`<div class="inline-block bg-rose-600 text-white font-extrabold px-3 py-1.5 rounded-lg animate-pulse">🔴 VENDRE</div><div class="text-xs text-rose-300 mt-1">Signal changé : ${sellMap.get(o)} → VENDRE</div>`
       :`<span class="text-emerald-300 font-bold">Acheter</span>${newSet.has(o)?` <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-2 py-0.5 rounded ml-1">NOUVEAU</span>`:""}`;
     $("asset-body").innerHTML+=`<tr class="${sell?"bg-rose-950/40":"bg-emerald-950/20"}">
-      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${o.x.id}</div><div class="text-xs text-slate-500">${esc(o.x.name)}</div><div class="text-[11px] text-slate-500">classe : ${classLabel(classOf(o.x))}</div></td>
+      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${o.x.id}${clock(o.x)}</div><div class="text-xs text-slate-500">${esc(o.x.name)}</div><div class="text-[11px] text-slate-500">classe : ${classLabel(classOf(o.x))}</div></td>
       <td class="py-3 px-3 text-sm text-slate-300">${catInfo(catOf(o.x)).short||catInfo(catOf(o.x)).label}</td>
       <td class="py-3 px-3 text-center">${badge(o.signal)}</td>
       <td class="py-3 px-3 text-right">${upCell(b)}</td>
@@ -550,13 +567,15 @@ function render(records){
   const noData=records.filter(r=>isOff(r.id)&&!r.series);
   const shortHist=records.filter(r=>isOff(r.id)&&r.series&&!cur.off.some(o=>o.x.id===r.id));
   $("all-count").textContent=`${fresh.length} à jour sur ${cur.off.length+shortHist.length+noData.length}`;
-  const status=o=>sellMap.has(o)?`<b class="text-rose-400">VENDRE</b> <span class="text-xs text-slate-500">(${sellMap.get(o)} → VENDRE)</span>`
+  const status0=o=>sellMap.has(o)?`<b class="text-rose-400">VENDRE</b> <span class="text-xs text-slate-500">(${sellMap.get(o)} → VENDRE)</span>`
     :o.signal==="ACHAT"?`<span class="text-emerald-300">Acheter</span>${newSet.has(o)?' <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-1.5 py-0.5 rounded">NOUVEAU</span>':""}`
     :o.signal==="WATCH"?'<span class="text-amber-300">Conserver, ne pas renforcer</span>':'<span class="text-slate-400">Vendre si détenu</span>';
-  let allRows=fresh.map((o,i)=>`<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${badge(o.signal)}</td><td class="py-1.5 px-3 text-right">${midCell(o.b)}</td><td class="py-1.5 px-3 text-right text-slate-300">${o.b.weeks} sem.</td><td class="py-1.5 px-3 text-xs">${status(o)}</td></tr>`).join("");
+  const late=o=>{ const ts=(o.x&&o.x.ts)||0, hrs=(Date.now()/1000-ts)/3600; return (ts&&hrs>30)?` <span class="text-[10px] text-amber-400" title="Dernier téléchargement de ce cours">cours du ${new Date(ts*1000).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>`:""; };
+  const status=o=>status0(o)+late(o);
+  let allRows=fresh.map((o,i)=>`<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span>${clock(o.x)} <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${badge(o.signal)}</td><td class="py-1.5 px-3 text-right">${midCell(o.b)}</td><td class="py-1.5 px-3 text-right text-slate-300">${o.b.weeks} sem.</td><td class="py-1.5 px-3 text-xs">${status(o)}</td></tr>`).join("");
   const dash=`<td class="py-1.5 px-3 text-right text-slate-600">—</td>`;
   const infoBadge=sig=>`<span class="inline-block bg-slate-300 text-black text-[10px] font-semibold px-1.5 py-0.5 rounded">${sig}</span>`;   // signal indicatif : petit, noir sur fond clair
-  allRows+=outdated.map(o=>`<tr class="opacity-80"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${infoBadge(o.signal)}</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-slate-400">Cours non à jour (dernier : ${new Date(o.lastT*1000).toLocaleDateString("fr-FR")}) — signal pour information</td></tr>`).join("");
+  allRows+=outdated.map(o=>`<tr class="opacity-80"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span>${clock(o.x)} <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${infoBadge(o.signal)}</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-slate-400">Cours non à jour (dernier : ${new Date(o.lastT*1000).toLocaleDateString("fr-FR")}) — signal pour information</td></tr>`).join("");
   allRows+=shortHist.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-amber-400">Historique insuffisant (moins de ${bbN+1} semaines de cours)</td></tr>`).join("");
   allRows+=noData.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-rose-400">Pas de cours : ${m.error}</td></tr>`).join("");
   $("all-body").innerHTML=allRows;
