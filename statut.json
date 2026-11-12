@@ -1,12 +1,13 @@
 {
- "passage": "2026-11-12T03:04:02+00:00",
- "mis_a_jour": 10,
+ "passage": "2026-11-12T06:18:24+00:00",
+ "mis_a_jour": 0,
  "disponibles": 35,
  "total": 35,
- "arret": null,
+ "arret": "Yahoo refuse cette adresse IP",
  "erreurs": [
-  "LTUR.PA: HTTP Error 429: Too Many Requests",
-  "XAUUSD=X: réponse 404 sur un actif connu (limitation Yahoo)"
+  "LTUR.PA: réponse 404 sur un actif connu (limitation Yahoo)",
+  "XAUUSD=X: réponse 404 sur un actif connu (limitation Yahoo)",
+  "LIT: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
