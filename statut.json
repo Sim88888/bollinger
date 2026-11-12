@@ -1,15 +1,12 @@
 {
- "passage": "2026-11-12T02:30:46+00:00",
- "mis_a_jour": 7,
+ "passage": "2026-11-12T03:04:02+00:00",
+ "mis_a_jour": 10,
  "disponibles": 35,
  "total": 35,
  "arret": null,
  "erreurs": [
-  "LTUR.PA: réponse 404 sur un actif connu (limitation Yahoo)",
-  "XAUUSD=X: réponse 404 sur un actif connu (limitation Yahoo)",
-  "NRJC.PA: HTTP Error 429: Too Many Requests",
-  "EEM: HTTP Error 429: Too Many Requests",
-  "IUSN.DE: HTTP Error 429: Too Many Requests"
+  "LTUR.PA: HTTP Error 429: Too Many Requests",
+  "XAUUSD=X: réponse 404 sur un actif connu (limitation Yahoo)"
  ],
  "sans_cours": []
 }
