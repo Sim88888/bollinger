@@ -1,20 +1,28 @@
 name: Mise à jour des cours
 on:
   schedule:
-    - cron: "*/30 6-21 * * 1-5"          # toutes les 30 minutes en journée, jours ouvrés (heures UTC)
-    - cron: "15 22 * * 1-5"              # dernier passage après la clôture des marchés américains
+    - cron: "7,37 6-21 * * 1-5"          # toutes les 30 minutes en journée (heures UTC) ; minutes « décalées » : GitHub retarde moins les passages hors des heures rondes
+    - cron: "13 3 * * 2-6"               # rattrapage de nuit (après la clôture de la veille)
+    - cron: "23 8 * * 6"                 # rattrapage le samedi matin
+    - cron: "17 22 * * 1-5"              # dernier passage après la clôture des marchés américains
   workflow_dispatch:                     # bouton « Run workflow »
+    inputs:
+      chain:
+        description: "Numéro de relance automatique (ne pas modifier)"
+        required: false
+        default: "0"
   push:
     paths: ["assets_v3.json"]
 permissions:
   contents: write
+  actions: write                         # permet au passage de se relancer lui-même s'il reste des cours en retard
 concurrency:
   group: maj-cours
   cancel-in-progress: true               # un nouveau lancement remplace un passage encore en cours
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -22,7 +30,7 @@ jobs:
       - name: Récupérer les cours
         run: python fetch_data.py
         timeout-minutes: 12
-        continue-on-error: true          # un échec de Yahoo n'est pas une erreur : on réessaiera au passage suivant
+        continue-on-error: true          # un échec de Yahoo n'est pas une erreur : on réessaiera plus tard
       - name: Enregistrer les nouveaux cours
         if: always()
         run: |
@@ -30,3 +38,16 @@ jobs:
           git config user.email "cours-bot@users.noreply.github.com"
           git add data.js data.json statut.json 2>/dev/null || true
           git diff --cached --quiet || (git commit -m "Cours du $(date -u +%F\ %H:%M)" && git pull --rebase -q && git push)
+      - name: Relancer si des cours sont encore en retard (3 relances maximum, 5 minutes d'écart)
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHAIN: ${{ github.event.inputs.chain || '0' }}
+        run: |
+          REST=$(python3 -c "import json;print(json.load(open('statut.json')).get('en_retard',0))" 2>/dev/null || echo 0)
+          echo "Actifs encore en retard : $REST — relance n°$CHAIN"
+          if [ "$REST" -gt 0 ] && [ "$CHAIN" -lt 3 ]; then
+            sleep 300
+            gh workflow run update.yml -f chain=$((CHAIN+1))
+          fi
