@@ -1,14 +1,16 @@
 {
- "passage": "2026-11-13T11:13:27+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-13T11:25:31+00:00",
+ "mis_a_jour": 12,
  "disponibles": 35,
  "total": 35,
- "en_retard": 24,
+ "en_retard": 12,
  "arret": null,
  "erreurs": [
-  "SI=F: HTTP Error 429: Too Many Requests",
-  "URA: HTTP Error 429: Too Many Requests",
-  "NRJC.PA: HTTP Error 429: Too Many Requests"
+  "AAXJ: HTTP Error 429: Too Many Requests",
+  "NCLR.L: HTTP Error 429: Too Many Requests",
+  "BZ=F: HTTP Error 429: Too Many Requests",
+  "IUSN.DE: HTTP Error 429: Too Many Requests",
+  "IEUS: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
