@@ -1,16 +1,15 @@
 {
- "passage": "2026-11-13T02:48:36+00:00",
- "mis_a_jour": 8,
+ "passage": "2026-11-13T02:59:49+00:00",
+ "mis_a_jour": 11,
  "disponibles": 35,
  "total": 35,
- "en_retard": 27,
+ "en_retard": 16,
  "arret": null,
  "erreurs": [
-  "LTUR.PA: HTTP Error 429: Too Many Requests",
-  "XAUUSD=X: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "CW8.PA: HTTP Error 429: Too Many Requests",
-  "PL=F: HTTP Error 429: Too Many Requests",
-  "IDTP.L: HTTP Error 429: Too Many Requests"
+  "PAASI.PA: HTTP Error 429: Too Many Requests",
+  "IUSN.DE: HTTP Error 429: Too Many Requests",
+  "BTC-EUR: HTTP Error 429: Too Many Requests",
+  "IEUS: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
