@@ -1,14 +1,14 @@
 {
- "passage": "2026-11-13T14:58:16+00:00",
+ "passage": "2026-11-13T15:09:29+00:00",
  "mis_a_jour": 12,
  "disponibles": 35,
  "total": 35,
- "en_retard": 3,
+ "en_retard": 2,
  "arret": null,
  "erreurs": [
-  "HG=F: HTTP Error 429: Too Many Requests",
-  "XOP: HTTP Error 429: Too Many Requests",
-  "GDX: HTTP Error 429: Too Many Requests"
+  "PA=F: HTTP Error 429: Too Many Requests",
+  "URA: HTTP Error 429: Too Many Requests",
+  "EUNM.DE: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
