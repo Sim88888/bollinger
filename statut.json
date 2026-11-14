@@ -1,15 +1,15 @@
 {
- "passage": "2026-11-14T10:34:12+00:00",
- "mis_a_jour": 8,
+ "passage": "2026-11-14T10:45:31+00:00",
+ "mis_a_jour": 11,
  "disponibles": 35,
  "total": 35,
- "en_retard": 27,
+ "en_retard": 16,
  "arret": null,
  "erreurs": [
-  "LTUR.PA: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "XAUUSD=X: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "GOAI.PA: HTTP Error 429: Too Many Requests",
-  "BRK-B: HTTP Error 429: Too Many Requests"
+  "PL=F: HTTP Error 429: Too Many Requests",
+  "URA: HTTP Error 429: Too Many Requests",
+  "PA=F: HTTP Error 429: Too Many Requests",
+  "EUNM.DE: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
