@@ -1,15 +1,15 @@
 {
- "passage": "2026-11-14T03:05:02+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-14T10:34:12+00:00",
+ "mis_a_jour": 8,
  "disponibles": 35,
  "total": 35,
- "en_retard": 3,
+ "en_retard": 27,
  "arret": null,
  "erreurs": [
-  "IEUS: HTTP Error 429: Too Many Requests",
-  "XFVT.DE: HTTP Error 429: Too Many Requests",
-  "AAXJ: HTTP Error 429: Too Many Requests",
-  "COMO.PA: HTTP Error 429: Too Many Requests"
+  "LTUR.PA: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
+  "XAUUSD=X: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
+  "GOAI.PA: HTTP Error 429: Too Many Requests",
+  "BRK-B: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
