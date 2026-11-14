@@ -1,13 +1,14 @@
 {
- "passage": "2026-11-14T15:38:26+00:00",
- "mis_a_jour": 12,
+ "passage": "2026-11-14T15:49:40+00:00",
+ "mis_a_jour": 11,
  "disponibles": 35,
  "total": 35,
- "en_retard": 12,
+ "en_retard": 3,
  "arret": null,
  "erreurs": [
-  "IUSN.DE: HTTP Error 429: Too Many Requests",
-  "ETH-USD: HTTP Error 429: Too Many Requests"
+  "XFVT.DE: HTTP Error 429: Too Many Requests",
+  "AAXJ: HTTP Error 429: Too Many Requests",
+  "GOAI.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
