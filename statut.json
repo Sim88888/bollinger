@@ -1,14 +1,14 @@
 {
- "passage": "2026-11-14T10:56:53+00:00",
+ "passage": "2026-11-14T11:08:33+00:00",
  "mis_a_jour": 11,
  "disponibles": 35,
  "total": 35,
- "en_retard": 5,
+ "en_retard": 2,
  "arret": null,
  "erreurs": [
-  "BTC-EUR: HTTP Error 429: Too Many Requests",
-  "BZ=F: HTTP Error 429: Too Many Requests",
-  "EEM: HTTP Error 429: Too Many Requests"
+  "XOP: HTTP Error 429: Too Many Requests",
+  "GDX: HTTP Error 429: Too Many Requests",
+  "LIT: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
