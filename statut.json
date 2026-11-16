@@ -1,16 +1,13 @@
 {
- "passage": "2026-11-16T15:49:13+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-16T15:59:27+00:00",
+ "mis_a_jour": 12,
  "disponibles": 35,
  "total": 35,
- "en_retard": 24,
+ "en_retard": 12,
  "arret": null,
  "erreurs": [
-  "IDTP.L: HTTP Error 429: Too Many Requests",
-  "CW8.PA: HTTP Error 429: Too Many Requests",
-  "SIL: HTTP Error 429: Too Many Requests",
-  "URA: HTTP Error 429: Too Many Requests",
-  "EUNM.DE: HTTP Error 429: Too Many Requests"
+  "^GSPC: HTTP Error 429: Too Many Requests",
+  "COMO.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
