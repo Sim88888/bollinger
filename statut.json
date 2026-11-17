@@ -1,13 +1,14 @@
 {
- "passage": "2026-11-17T00:24:19+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-17T04:38:17+00:00",
+ "mis_a_jour": 10,
  "disponibles": 35,
  "total": 35,
- "en_retard": 4,
+ "en_retard": 25,
  "arret": null,
  "erreurs": [
-  "NRJC.PA: HTTP Error 429: Too Many Requests",
-  "AWAT.PA: HTTP Error 429: Too Many Requests"
+  "LTUR.PA: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
+  "XAUUSD=X: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
+  "URA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
