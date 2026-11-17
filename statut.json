@@ -1,16 +1,16 @@
 {
- "passage": "2026-11-17T04:51:51+00:00",
- "mis_a_jour": 7,
+ "passage": "2026-11-17T05:05:09+00:00",
+ "mis_a_jour": 10,
  "disponibles": 35,
  "total": 35,
- "en_retard": 18,
+ "en_retard": 8,
  "arret": null,
  "erreurs": [
   "IEUS: HTTP Error 429: Too Many Requests",
-  "ETH-USD: HTTP Error 429: Too Many Requests",
   "^GSPC: HTTP Error 429: Too Many Requests",
-  "HG=F: HTTP Error 429: Too Many Requests",
-  "NCLR.L: HTTP Error 429: Too Many Requests"
+  "NCLR.L: HTTP Error 429: Too Many Requests",
+  "AAXJ: HTTP Error 429: Too Many Requests",
+  "GOAI.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
