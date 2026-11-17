@@ -1,15 +1,13 @@
 {
- "passage": "2026-11-17T00:13:22+00:00",
- "mis_a_jour": 12,
+ "passage": "2026-11-17T00:24:19+00:00",
+ "mis_a_jour": 11,
  "disponibles": 35,
  "total": 35,
- "en_retard": 11,
+ "en_retard": 4,
  "arret": null,
  "erreurs": [
-  "NCLR.L: HTTP Error 429: Too Many Requests",
-  "BTC-EUR: HTTP Error 429: Too Many Requests",
-  "D5BI.DE: HTTP Error 429: Too Many Requests",
-  "GDX: HTTP Error 429: Too Many Requests"
+  "NRJC.PA: HTTP Error 429: Too Many Requests",
+  "AWAT.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
