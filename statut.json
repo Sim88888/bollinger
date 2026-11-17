@@ -1,14 +1,16 @@
 {
- "passage": "2026-11-17T16:22:05+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-17T16:34:49+00:00",
+ "mis_a_jour": 12,
  "disponibles": 35,
  "total": 35,
- "en_retard": 13,
+ "en_retard": 3,
  "arret": null,
  "erreurs": [
-  "NRJC.PA: HTTP Error 429: Too Many Requests",
   "IDTP.L: HTTP Error 429: Too Many Requests",
-  "XFVT.DE: HTTP Error 429: Too Many Requests"
+  "COMO.PA: HTTP Error 429: Too Many Requests",
+  "EURUSD=X: HTTP Error 429: Too Many Requests",
+  "BTC-EUR: HTTP Error 429: Too Many Requests",
+  "MAGS: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
