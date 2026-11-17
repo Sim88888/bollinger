@@ -1,16 +1,16 @@
 {
- "passage": "2026-11-17T11:59:28+00:00",
+ "passage": "2026-11-17T12:13:12+00:00",
  "mis_a_jour": 9,
  "disponibles": 35,
  "total": 35,
- "en_retard": 26,
+ "en_retard": 17,
  "arret": null,
  "erreurs": [
-  "LTUR.PA: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "XAUUSD=X: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "CW8.PA: HTTP Error 429: Too Many Requests",
-  "URA: HTTP Error 429: Too Many Requests",
-  "EEM: HTTP Error 429: Too Many Requests"
+  "EEM: HTTP Error 429: Too Many Requests",
+  "D5BI.DE: HTTP Error 429: Too Many Requests",
+  "LIT: HTTP Error 429: Too Many Requests",
+  "PL=F: HTTP Error 429: Too Many Requests",
+  "PAASI.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
