@@ -1,18 +1,15 @@
 {
- "passage": "2026-11-17T16:02:08+00:00",
- "mis_a_jour": 9,
+ "passage": "2026-11-17T16:10:44+00:00",
+ "mis_a_jour": 2,
  "disponibles": 35,
  "total": 35,
- "en_retard": 26,
- "arret": null,
+ "en_retard": 24,
+ "arret": "Yahoo refuse cette adresse IP",
  "erreurs": [
-  "LTUR.PA: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "XAUUSD=X: réponse 404 sur un actif connu : ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "GDX: HTTP Error 429: Too Many Requests",
-  "BRK-B: HTTP Error 429: Too Many Requests",
   "VFEA.DE: HTTP Error 429: Too Many Requests",
-  "^GSPC: HTTP Error 429: Too Many Requests",
-  "D5BI.DE: HTTP Error 429: Too Many Requests"
+  "NCLR.L: HTTP Error 429: Too Many Requests",
+  "GOAI.PA: HTTP Error 429: Too Many Requests",
+  "XOP: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
