@@ -1,16 +1,15 @@
 {
- "passage": "2026-11-17T12:13:12+00:00",
- "mis_a_jour": 9,
+ "passage": "2026-11-17T12:24:35+00:00",
+ "mis_a_jour": 11,
  "disponibles": 35,
  "total": 35,
- "en_retard": 17,
+ "en_retard": 6,
  "arret": null,
  "erreurs": [
-  "EEM: HTTP Error 429: Too Many Requests",
-  "D5BI.DE: HTTP Error 429: Too Many Requests",
-  "LIT: HTTP Error 429: Too Many Requests",
   "PL=F: HTTP Error 429: Too Many Requests",
-  "PAASI.PA: HTTP Error 429: Too Many Requests"
+  "AWAT.PA: HTTP Error 429: Too Many Requests",
+  "XFVT.DE: HTTP Error 429: Too Many Requests",
+  "TLT: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
