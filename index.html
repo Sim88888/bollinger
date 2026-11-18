@@ -42,27 +42,48 @@
 <div class="flex flex-col lg:flex-row justify-between gap-4 mb-5">
 <div>
 <h3 class="text-lg font-bold"><i class="fa-solid fa-ranking-star text-indigo-400 mr-2"></i>Rotation offensive <span id="rotation-count" class="text-xs font-normal text-slate-400 ml-2"></span></h3>
-<p class="text-xs text-slate-400 mt-1">Seuls les actifs en <b class="text-emerald-300">ACHAT</b> et ceux dont le signal vient de passer à <b class="text-rose-300">VENDRE</b> sont affichés ; la liste complète figure plus bas. <span id="ref-decision-label"></span></p>
+<p class="text-xs text-slate-400 mt-1">Suivi des actifs que vous avez achetés : le cours de référence est le dernier cours connu à la date d'achat. La liste est enregistrée dans ce navigateur (sauvegarde possible en fichier, en bas du tableau).</p>
 </div>
 <div class="text-xs bg-slate-900/70 border border-slate-700 rounded-lg px-3 py-2">
 <b>Signal hebdomadaire :</b> bandes de Bollinger sur clôtures de semaine · <span id="bb-params">20 sem. · 0,75 σ</span>
 </div>
 </div>
+<div class="grid md:grid-cols-2 gap-4 mb-5">
+<div class="bg-slate-900/50 border border-slate-700 rounded-xl p-4">
+<div class="text-sm font-semibold text-emerald-300 mb-2"><i class="fa-solid fa-circle-plus mr-1"></i>J'ai acheté un actif</div>
+<div class="flex flex-wrap gap-2 items-center">
+<select id="pos-add-sel" class="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-sm min-w-[12rem] max-w-full"></select>
+<input id="pos-add-date" type="date" class="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-sm" title="Date d'achat (aujourd'hui par défaut)">
+<button id="pos-add-btn" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm px-3 py-1.5 rounded-lg">Ajouter</button>
+</div></div>
+<div class="bg-slate-900/50 border border-slate-700 rounded-xl p-4">
+<div class="text-sm font-semibold text-rose-300 mb-2"><i class="fa-solid fa-circle-minus mr-1"></i>J'ai vendu un actif</div>
+<div class="flex flex-wrap gap-2 items-center">
+<select id="pos-del-sel" class="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-sm min-w-[12rem] max-w-full"></select>
+<button id="pos-del-btn" type="button" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm px-3 py-1.5 rounded-lg">Retirer du suivi</button>
+</div></div>
+</div>
+<div id="pos-msg" class="text-xs text-slate-400 mb-3 hidden"></div>
 <div class="overflow-x-auto">
 <table class="w-full text-left">
 <thead class="border-b border-slate-700 text-slate-400 text-xs uppercase">
 <tr>
-<th class="py-3 px-3">Actif</th><th class="py-3 px-3">Catégorie</th><th class="py-3 px-3 text-center">Signal</th>
-<th class="py-3 px-3 text-right">Clôture vs bande haute</th><th class="py-3 px-3 text-right">Bande milieu</th><th class="py-3 px-3 text-right">Depuis</th><th class="py-3 px-3">Action</th>
+<th class="py-3 px-3">Actif</th><th class="py-3 px-3">Catégorie</th><th class="py-3 px-3">Date d'achat</th>
+<th class="py-3 px-3 text-right">Cours d'achat</th><th class="py-3 px-3 text-right">Cours actuel</th><th class="py-3 px-3 text-right">Variation</th><th class="py-3 px-3 text-center">Statut</th>
 </tr>
 </thead>
 <tbody id="asset-body" class="divide-y divide-slate-700/60"></tbody>
 </table>
 </div>
+<div class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500">
+<button id="pos-export" type="button" class="hover:text-indigo-300 underline decoration-dotted"><i class="fa-solid fa-download mr-1"></i>Sauvegarder mes achats (fichier)</button>
+<button id="pos-import" type="button" class="hover:text-indigo-300 underline decoration-dotted"><i class="fa-solid fa-upload mr-1"></i>Charger une sauvegarde</button>
+<input id="pos-file" type="file" accept="application/json,.json" class="hidden">
+</div>
 <div class="mt-6 bg-slate-900/40 border border-slate-700 rounded-xl p-4">
 <h4 class="text-sm font-semibold text-slate-300">Tous les actifs testés (<span id="all-count">0</span>)</h4>
 <div class="overflow-x-auto mt-3"><table class="w-full text-left text-sm">
-<thead class="text-xs uppercase text-slate-400 border-b border-slate-700"><tr><th class="py-2 px-3">#</th><th class="py-2 px-3">Catégorie</th><th class="py-2 px-3">Actif</th><th class="py-2 px-3 text-center">Signal</th><th class="py-2 px-3 text-right">Pente bande milieu</th><th class="py-2 px-3 text-right">Depuis</th><th class="py-2 px-3">Statut</th></tr></thead>
+<thead class="text-xs uppercase text-slate-400 border-b border-slate-700"><tr><th class="py-2 px-3">#</th><th class="py-2 px-3">Catégorie</th><th class="py-2 px-3">Actif</th><th class="py-2 px-3 text-center">Signal</th><th class="py-2 px-3 text-right">Pente bande milieu</th><th class="py-2 px-3 text-right">Depuis</th></tr></thead>
 <tbody id="all-body" class="divide-y divide-slate-800"></tbody></table></div>
 <div id="all-errors"></div>
 </div>
@@ -353,6 +374,7 @@ async function refresh(force){
         records.push({...item,error:res.reason?.message||"erreur"});
       }
     }
+    LAST_RECORDS=records;
     render(records);
     const ok=records.filter(x=>x.series).length;
     { const lu=$("last-update"), oldest=Math.min(...records.filter(r=>r.ts).map(r=>r.ts*1000)), ageH=isFinite(oldest)?(Date.now()-oldest)/3600000:0, stale=ageH>96;   // plus de 4 jours : week-end et jours fériés exclus
@@ -544,57 +566,128 @@ function render(records){
   const upCell=b=>`<span class="${b.vsUp>0?"text-emerald-400":"text-slate-300"} font-semibold">${sp(b.vsUp)}</span>`;
   const midCell=b=>`<span class="${b.slope>=0?"text-emerald-400":"text-rose-400"}">${b.slope>=0?"↗":"↘"} ${sp(b.slopePct,2)}</span> <span class="text-xs text-slate-500">/ sem.</span>`;
 
-  // ── Tableau « Rotation offensive » : actifs à acheter + actifs passés à VENDRE
-  $("ref-decision-label").textContent=`Changements comparés à la décision du ${fdate(dd)}.`;
-  const rows=fresh.filter(o=>o.signal==="ACHAT"||sellMap.has(o));
-  $("rotation-count").textContent=`${buys.length} à acheter · ${sells.length} passé(s) à VENDRE · ${fresh.length} actifs à jour${outdated.length?` · ${outdated.length} pour information`:""}`;
-  $("asset-body").innerHTML=rows.length?"":`<tr><td colspan="7" class="py-6 px-3 text-center text-slate-400">Aucun actif à acheter ni nouveau signal VENDRE pour le moment.</td></tr>`;
-  rows.forEach(o=>{
-    const sell=sellMap.has(o), b=o.b;
-    const action=sell?`<div class="inline-block bg-rose-600 text-white font-extrabold px-3 py-1.5 rounded-lg animate-pulse">🔴 VENDRE</div><div class="text-xs text-rose-300 mt-1">Signal changé : ${sellMap.get(o)} → VENDRE</div>`
-      :`<span class="text-emerald-300 font-bold">Acheter</span>${newSet.has(o)?` <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-2 py-0.5 rounded ml-1">NOUVEAU</span>`:""}`;
-    $("asset-body").innerHTML+=`<tr class="${sell?"bg-rose-950/40":"bg-emerald-950/20"}">
-      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${o.x.id}${clock(o.x)}</div><div class="text-xs text-slate-500">${esc(o.x.name)}</div><div class="text-[11px] text-slate-500">classe : ${classLabel(classOf(o.x))}</div></td>
-      <td class="py-3 px-3 text-sm text-slate-300">${catInfo(catOf(o.x)).short||catInfo(catOf(o.x)).label}</td>
-      <td class="py-3 px-3 text-center">${badge(o.signal)}</td>
-      <td class="py-3 px-3 text-right">${upCell(b)}</td>
-      <td class="py-3 px-3 text-right">${midCell(b)}</td>
-      <td class="py-3 px-3 text-right text-slate-300">${b.weeks} sem.</td>
-      <td class="py-3 px-3">${action}</td></tr>`;
-  });
+  renderPositions(cur,records,badge);
 
   // ── Tous les actifs suivis : toujours affichés (signaux, puis actifs sans cours ou sans historique suffisant)
   const noData=records.filter(r=>isOff(r.id)&&!r.series);
   const shortHist=records.filter(r=>isOff(r.id)&&r.series&&!cur.off.some(o=>o.x.id===r.id));
   $("all-count").textContent=`${fresh.length} à jour sur ${cur.off.length+shortHist.length+noData.length}`;
-  const status0=o=>sellMap.has(o)?`<b class="text-rose-400">VENDRE</b> <span class="text-xs text-slate-500">(${sellMap.get(o)} → VENDRE)</span>`
-    :o.signal==="ACHAT"?`<span class="text-emerald-300">Acheter</span>${newSet.has(o)?' <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-1.5 py-0.5 rounded">NOUVEAU</span>':""}`
-    :o.signal==="WATCH"?'<span class="text-amber-300">Conserver, ne pas renforcer</span>':'<span class="text-slate-400">Vendre si détenu</span>';
-  const late=o=>{ const ts=(o.x&&o.x.ts)||0, hrs=(Date.now()/1000-ts)/3600; return (ts&&hrs>30)?` <span class="text-[10px] text-amber-400" title="Dernier téléchargement de ce cours">cours du ${new Date(ts*1000).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>`:""; };
-  const status=o=>status0(o)+late(o);
-  let allRows=fresh.map((o,i)=>`<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span>${clock(o.x)} <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${badge(o.signal)}</td><td class="py-1.5 px-3 text-right">${midCell(o.b)}</td><td class="py-1.5 px-3 text-right text-slate-300">${o.b.weeks} sem.</td><td class="py-1.5 px-3 text-xs">${status(o)}</td></tr>`).join("");
+  let allRows=fresh.map((o,i)=>`<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span>${clock(o.x)} <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${badge(o.signal)}</td><td class="py-1.5 px-3 text-right">${midCell(o.b)}</td><td class="py-1.5 px-3 text-right text-slate-300">${o.b.weeks} sem.</td></tr>`).join("");
   const dash=`<td class="py-1.5 px-3 text-right text-slate-600">—</td>`;
   const infoBadge=sig=>`<span class="inline-block bg-slate-300 text-black text-[10px] font-semibold px-1.5 py-0.5 rounded">${sig}</span>`;   // signal indicatif : petit, noir sur fond clair
-  allRows+=outdated.map(o=>`<tr class="opacity-80"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span>${clock(o.x)} <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-center">${infoBadge(o.signal)}</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-slate-400">Cours non à jour (dernier : ${new Date(o.lastT*1000).toLocaleDateString("fr-FR")}) — signal pour information</td></tr>`).join("");
-  allRows+=shortHist.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-amber-400">Historique insuffisant (moins de ${bbN+1} semaines de cours)</td></tr>`).join("");
-  allRows+=noData.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-slate-600">—</td>${dash}${dash}<td class="py-1.5 px-3 text-xs text-rose-400">Pas de cours : ${m.error}</td></tr>`).join("");
+  allRows+=outdated.map(o=>`<tr class="opacity-80"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span>${clock(o.x)} <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span> <span class="text-[10px] text-slate-500">cours du ${new Date(o.lastT*1000).toLocaleDateString("fr-FR")} · information</span></td><td class="py-1.5 px-3 text-center">${infoBadge(o.signal)}</td>${dash}${dash}</tr>`).join("");
+  allRows+=shortHist.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-[11px] text-amber-400" title="Moins de ${bbN+1} semaines de cours">Hist. insuffisant</td>${dash}${dash}</tr>`).join("");
+  allRows+=noData.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-center text-[11px] text-rose-400" title="${esc(m.error||"")}">Pas de cours</td>${dash}${dash}</tr>`).join("");
   $("all-body").innerHTML=allRows;
   $("all-errors").innerHTML=(noData.length||shortHist.length||outdated.length)?`<div class="text-xs text-slate-400 mt-2">Les actifs sans cours à jour (dernier cours de plus de 4 jours) ou sans historique suffisant sont indiqués pour information et ne comptent ni dans les alertes ni dans les achats ; les cours se rafraîchissent automatiquement.</div>`:"";
 
-  // ── Bandeau d'alerte
-  const box=$("alert-box");
-  if(sells.length||newBuys.length){
+  // ── Bandeau d'alerte : actifs détenus en VENDRE (en rouge) ; nouveaux signaux ACHAT sur des actifs non détenus
+  const box=$("alert-box"), heldIds=new Set(posLoad().map(p=>p.id));
+  const heldSell=fresh.filter(o=>heldIds.has(o.x.id)&&o.signal==="VENDRE"), freshBuys=newBuys.filter(o=>!heldIds.has(o.x.id));
+  if(heldSell.length||freshBuys.length){
     box.className="";
-    box.innerHTML=`<div class="border-2 ${sells.length?"border-rose-500 bg-rose-950/50":"border-emerald-600 bg-emerald-950/30"} rounded-2xl p-5">
-      ${sells.length?`<div class="text-rose-300 font-extrabold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i>SIGNAL CHANGÉ — À VENDRE : ${sells.map(z=>`<span class="font-mono">${z.o.x.id}</span> (${catInfo(catOf(z.o.x)).short}, ${z.ps} → VENDRE)`).join(", ")}</div>`:""}
-      ${newBuys.length?`<div class="text-emerald-300 font-bold mt-1">Nouveau signal ACHAT : ${newBuys.map(o=>`${o.x.id} (${catInfo(catOf(o.x)).short})`).join(", ")}</div>`:""}
-      <div class="text-xs text-slate-400 mt-1">Comparaison avec la décision du ${fdate(dd)}.</div></div>`;
+    box.innerHTML=`<div class="border-2 ${heldSell.length?"border-rose-500 bg-rose-950/50":"border-emerald-600 bg-emerald-950/30"} rounded-2xl p-5">
+      ${heldSell.length?`<div class="text-rose-300 font-extrabold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i>À VENDRE (actifs que vous détenez) : ${heldSell.map(o=>`<span class="font-mono">${o.x.id}</span> (${catInfo(catOf(o.x)).short})`).join(", ")}</div>`:""}
+      ${freshBuys.length?`<div class="text-emerald-300 font-bold mt-1">Nouveau signal ACHAT : ${freshBuys.map(o=>`${o.x.id} (${catInfo(catOf(o.x)).short})`).join(", ")}</div><div class="text-xs text-slate-400 mt-1">Comparaison avec la décision du ${fdate(dd)}.</div>`:""}</div>`;
   }else{ box.className="hidden"; box.innerHTML=""; }
 
   // ── Produits (actifs en ACHAT) + répartition des signaux
   renderProducts(buys);
   $("n-buy").textContent=buys.length; $("n-watch").textContent=fresh.filter(o=>o.signal==="WATCH").length; $("n-sell").textContent=fresh.filter(o=>o.signal==="VENDRE").length;
   renderManager();
+}
+
+// ───────── Suivi des actifs achetés (enregistré dans ce navigateur ; sauvegarde possible en fichier) ─────────
+const POS_KEY="bollinger_positions_v1";
+let LAST_RECORDS=[], MEM_POS=[], POS_STORAGE_OK=true;
+function posLoad(){
+  try{ const v=JSON.parse(localStorage.getItem(POS_KEY)||"[]"); POS_STORAGE_OK=true;
+    return Array.isArray(v)?v.filter(p=>p&&p.id&&/^\d{4}-\d{2}-\d{2}$/.test(p.date||"")):[]; }
+  catch(e){ POS_STORAGE_OK=false; return MEM_POS; }
+}
+function posSave(list){ MEM_POS=list; try{ localStorage.setItem(POS_KEY,JSON.stringify(list)); POS_STORAGE_OK=true; }catch(e){ POS_STORAGE_OK=false; } }
+const todayStr=()=>{ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const fdateStr=s=>s.split("-").reverse().join("/");
+function priceAt(series,dateStr){           // dernier cours connu à la fin du jour demandé (aujourd'hui : dernier cours disponible)
+  if(!series||!series.length) return null;
+  const [y,m,d]=dateStr.split("-").map(Number), end=Date.UTC(y,m-1,d,23,59,59)/1000;
+  let v=null; for(const x of series){ if(x.t>end) break; v=x.p; }
+  return v;
+}
+const priceFmt=(v,x)=>{ const unit=(x&&String(x.ticker).startsWith("^"))?" pts":((BB().eur||!x||x.currency!=="USD")?" €":" $");
+  return v==null?"—":v.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+unit; };
+function posMsg(t,bad){ const m=$("pos-msg"); if(!t){ m.className="hidden"; m.textContent=""; return; } m.className="text-xs mb-3 "+(bad?"text-rose-300":"text-emerald-300"); m.textContent=t; }
+
+function renderPositions(cur,records,badge){
+  const pos=posLoad(), tbody=$("asset-body"), mode=BB().eur?"EUR":"cotation";
+  const infoBadge=sig=>`<span class="inline-block bg-slate-300 text-black text-[10px] font-semibold px-1.5 py-0.5 rounded">${sig}</span>`;
+  const rows=pos.map(p=>{
+    const r=records.find(x=>x.id===p.id), o=cur.off.find(x=>x.x.id===p.id);
+    const series=r&&r.series, last=series&&series.length?series[series.length-1].p:null;
+    const entry=(p.mode===mode&&p.price!=null)?p.price:priceAt(series,p.date);
+    const varPct=(last!=null&&entry)?(last/entry-1)*100:null;
+    return {p,r,o,last,entry,varPct,sig:o?o.signal:null};
+  });
+  const rank={VENDRE:0,WATCH:1,ACHAT:2};
+  rows.sort((a,b)=>((a.sig&&!a.o.stale?rank[a.sig]:3)-(b.sig&&!b.o.stale?rank[b.sig]:3))||b.p.date.localeCompare(a.p.date));
+  const cnt=s=>rows.filter(z=>z.o&&!z.o.stale&&z.sig===s).length;
+  $("rotation-count").textContent=rows.length?`${rows.length} actif${rows.length>1?"s":""} suivi${rows.length>1?"s":""} · ${cnt("ACHAT")} ACHAT · ${cnt("WATCH")} WATCH · ${cnt("VENDRE")} VENDRE`:"";
+  tbody.innerHTML=rows.length?"":`<tr><td colspan="7" class="py-6 px-3 text-center text-slate-400">Aucun actif suivi pour le moment. Choisissez un actif ci-dessus puis cliquez sur « Ajouter » quand vous l'achetez.</td></tr>`;
+  rows.forEach(z=>{
+    const x=z.r||{id:z.p.id,name:z.p.id}, sell=z.o&&!z.o.stale&&z.sig==="VENDRE";
+    const st=!z.o?'<span class="text-slate-500 text-xs">—</span>':z.o.stale?infoBadge(z.sig):badge(z.sig);
+    const stNote=sell?'<div class="text-[11px] text-rose-300 mt-1 font-semibold">Signal VENDRE : à vendre</div>':(z.o&&z.o.stale?'<div class="text-[10px] text-slate-500 mt-1">cours non à jour</div>':"");
+    const vc=z.varPct==null?"text-slate-500":z.varPct>=0?"text-emerald-400":"text-rose-400";
+    tbody.innerHTML+=`<tr class="${sell?"bg-rose-950/40":""}">
+      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${esc(x.id)}${z.o?clock(z.o.x):""}</div><div class="text-xs text-slate-500">${esc(x.name||"")}</div></td>
+      <td class="py-3 px-3 text-sm text-slate-300">${z.r?(catInfo(catOf(z.r)).short||catInfo(catOf(z.r)).label):"—"}</td>
+      <td class="py-3 px-3 text-sm text-slate-300">${fdateStr(z.p.date)}</td>
+      <td class="py-3 px-3 text-right text-slate-300">${priceFmt(z.entry,z.r)}</td>
+      <td class="py-3 px-3 text-right text-slate-300">${priceFmt(z.last,z.r)}</td>
+      <td class="py-3 px-3 text-right font-bold ${vc}">${z.varPct==null?"—":sp(z.varPct,2)}</td>
+      <td class="py-3 px-3 text-center">${st}${stNote}</td></tr>`;
+  });
+  // listes déroulantes (la sélection en cours est conservée)
+  const addSel=$("pos-add-sel"), delSel=$("pos-del-sel"), av=addSel.value, dv=delSel.value, held=new Set(pos.map(p=>p.id));
+  addSel.innerHTML='<option value="">Choisir l\'actif acheté…</option>'+records.filter(r=>isOff(r.id)&&!held.has(r.id)).map(r=>`<option value="${esc(r.id)}"${r.series?"":" disabled"}>${esc(r.id)} — ${esc(r.name||"")}${r.series?"":" (pas de cours)"}</option>`).join("");
+  delSel.innerHTML='<option value="">Choisir l\'actif vendu…</option>'+pos.map(p=>{ const r=records.find(x=>x.id===p.id); return `<option value="${esc(p.id)}">${esc(p.id)}${r?" — "+esc(r.name||""):""}</option>`; }).join("");
+  if([...addSel.options].some(o=>o.value===av)) addSel.value=av;
+  if([...delSel.options].some(o=>o.value===dv)) delSel.value=dv;
+  if(!$("pos-add-date").value) $("pos-add-date").value=todayStr();
+  $("pos-add-date").max=todayStr();
+  if(!POS_STORAGE_OK) posMsg("Ce navigateur n'autorise pas l'enregistrement : vos achats sont conservés seulement tant que la page reste ouverte. Utilisez « Sauvegarder mes achats ».",true);
+}
+function initPositions(){
+  $("pos-add-btn").onclick=()=>{
+    const id=$("pos-add-sel").value, date=$("pos-add-date").value||todayStr();
+    if(!id){ posMsg("Choisissez d'abord l'actif acheté.",true); return; }
+    if(date>todayStr()){ posMsg("La date d'achat ne peut pas être dans le futur.",true); return; }
+    const r=LAST_RECORDS.find(x=>x.id===id), price=r&&priceAt(r.series,date);
+    if(price==null){ posMsg("Pas de cours disponible pour "+id+" à cette date : achat non enregistré.",true); return; }
+    const list=posLoad(); if(list.some(p=>p.id===id)){ posMsg(id+" est déjà suivi.",true); return; }
+    list.push({id,date,price,mode:BB().eur?"EUR":"cotation"}); posSave(list);
+    posMsg(id+" ajouté : achat du "+fdateStr(date)+" au cours de "+priceFmt(price,r)+".",false);
+    $("pos-add-sel").value=""; render(LAST_RECORDS);
+  };
+  $("pos-del-btn").onclick=()=>{
+    const id=$("pos-del-sel").value; if(!id){ posMsg("Choisissez d'abord l'actif vendu.",true); return; }
+    if(!confirm("Retirer "+id+" du suivi (actif vendu) ?")) return;
+    posSave(posLoad().filter(p=>p.id!==id)); posMsg(id+" retiré du suivi.",false); render(LAST_RECORDS);
+  };
+  $("pos-export").onclick=()=>{
+    const blob=new Blob([JSON.stringify({version:1,positions:posLoad()},null,1)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="positions_bollinger.json"; document.body.appendChild(a); a.click(); a.remove();
+    posMsg("Fichier positions_bollinger.json téléchargé : gardez-le comme sauvegarde.",false);
+  };
+  $("pos-import").onclick=()=>$("pos-file").click();
+  $("pos-file").onchange=async e=>{
+    const f=e.target.files[0]; e.target.value=""; if(!f) return;
+    try{ const j=JSON.parse(await f.text()), list=(Array.isArray(j)?j:j.positions||[]).filter(p=>p&&p.id&&/^\d{4}-\d{2}-\d{2}$/.test(p.date||""));
+      if(!list.length){ posMsg("Ce fichier ne contient aucun achat.",true); return; }
+      if(!confirm("Remplacer la liste actuelle par les "+list.length+" achat(s) de ce fichier ?")) return;
+      posSave(list); posMsg(list.length+" achat(s) chargé(s).",false); render(LAST_RECORDS);
+    }catch(err){ posMsg("Fichier illisible : "+err.message,true); }
+  };
 }
 
 // ───────── Module : ajouter / supprimer un actif (produit un assets_v3.json modifié, à déposer sur GitHub) ─────────
@@ -729,6 +822,7 @@ function nextDecision(){
 
 $("refreshBtn").addEventListener("click",()=>refresh(true));
 
+initPositions();
 refresh();
 setInterval(()=>refresh(),600*1000);   // recharge les cours toutes les 10 minutes (data.js est mis à jour par GitHub Actions)
 </script>
