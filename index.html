@@ -38,10 +38,30 @@
 <div id="canary-charts" class="grid xl:grid-cols-2 gap-5 mt-4"></div>
 </section>
 
+<section id="size-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-calculator text-indigo-400 mr-2"></i>Taille de la position à acheter</h3>
+<p class="text-xs text-slate-400 mt-1">Taille de position = perte acceptée ÷ (cours d'achat − cours du stop loss). Saisissez les 3 valeurs : le résultat se calcule seul. Les frais de courtage ne sont pas inclus.</p>
+<div class="grid md:grid-cols-3 gap-4 mt-4">
+<label class="block"><span class="text-xs text-slate-400">Cours d'achat</span>
+<input id="sz-entry" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 8,28" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></label>
+<label class="block"><span class="text-xs text-slate-400">Cours du stop loss</span>
+<input id="sz-stop" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 7,80" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></label>
+<label class="block"><span class="text-xs text-slate-400">Perte acceptée (€)</span>
+<input id="sz-loss" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 200" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></label>
+</div>
+<div id="sz-msg" class="text-xs text-slate-400 mt-4">Renseignez le cours d'achat, le cours du stop loss et la perte acceptée.</div>
+<div id="sz-result" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 hidden">
+<div class="bg-slate-900/60 rounded-xl p-4 border border-indigo-500/40"><div class="text-xs text-slate-400">Taille de la position</div><div id="sz-qty" class="text-2xl font-bold text-indigo-300">—</div><div id="sz-qty-note" class="text-[11px] text-slate-500 mt-1"></div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Montant à investir</div><div id="sz-amount" class="text-2xl font-bold">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Perte si le stop est touché</div><div id="sz-real" class="text-2xl font-bold text-rose-400">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Distance au stop</div><div id="sz-dist" class="text-2xl font-bold">—</div><div id="sz-dist-note" class="text-[11px] text-slate-500 mt-1"></div></div>
+</div>
+</section>
+
 <section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
 <div class="flex flex-col lg:flex-row justify-between gap-4 mb-5">
 <div>
-<h3 class="text-lg font-bold"><i class="fa-solid fa-ranking-star text-indigo-400 mr-2"></i>Rotation offensive <span id="rotation-count" class="text-xs font-normal text-slate-400 ml-2"></span></h3>
+<h3 class="text-lg font-bold"><i class="fa-solid fa-ranking-star text-indigo-400 mr-2"></i>Achat/vente <span id="rotation-count" class="text-xs font-normal text-slate-400 ml-2"></span></h3>
 <p class="text-xs text-slate-400 mt-1">Suivi des actifs que vous avez achetés : le cours de référence est le dernier cours connu à la date d'achat. La liste est enregistrée dans ce navigateur (sauvegarde possible en fichier, en bas du tableau).</p>
 </div>
 <div class="text-xs bg-slate-900/70 border border-slate-700 rounded-lg px-3 py-2">
@@ -86,26 +106,6 @@
 <thead class="text-xs uppercase text-slate-400 border-b border-slate-700"><tr><th class="py-2 px-3">#</th><th class="py-2 px-3">Catégorie</th><th class="py-2 px-3">Actif</th><th class="py-2 px-3 text-center">Signal</th><th class="py-2 px-3 text-right">Pente bande milieu</th><th class="py-2 px-3 text-right">Depuis</th></tr></thead>
 <tbody id="all-body" class="divide-y divide-slate-800"></tbody></table></div>
 <div id="all-errors"></div>
-</div>
-</section>
-
-<section id="size-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
-<h3 class="text-lg font-bold"><i class="fa-solid fa-calculator text-indigo-400 mr-2"></i>Taille de la position à acheter</h3>
-<p class="text-xs text-slate-400 mt-1">Taille de position = perte acceptée ÷ (cours d'achat − cours du stop loss). Saisissez les 3 valeurs : le résultat se calcule seul. Les frais de courtage ne sont pas inclus.</p>
-<div class="grid md:grid-cols-3 gap-4 mt-4">
-<label class="block"><span class="text-xs text-slate-400">Cours d'achat</span>
-<input id="sz-entry" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 8,28" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></label>
-<label class="block"><span class="text-xs text-slate-400">Cours du stop loss</span>
-<input id="sz-stop" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 7,80" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></label>
-<label class="block"><span class="text-xs text-slate-400">Perte acceptée (€)</span>
-<input id="sz-loss" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 200" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></label>
-</div>
-<div id="sz-msg" class="text-xs text-slate-400 mt-4">Renseignez le cours d'achat, le cours du stop loss et la perte acceptée.</div>
-<div id="sz-result" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 hidden">
-<div class="bg-slate-900/60 rounded-xl p-4 border border-indigo-500/40"><div class="text-xs text-slate-400">Taille de la position</div><div id="sz-qty" class="text-2xl font-bold text-indigo-300">—</div><div id="sz-qty-note" class="text-[11px] text-slate-500 mt-1"></div></div>
-<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Montant à investir</div><div id="sz-amount" class="text-2xl font-bold">—</div></div>
-<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Perte si le stop est touché</div><div id="sz-real" class="text-2xl font-bold text-rose-400">—</div></div>
-<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Distance au stop</div><div id="sz-dist" class="text-2xl font-bold">—</div><div id="sz-dist-note" class="text-[11px] text-slate-500 mt-1"></div></div>
 </div>
 </section>
 
