@@ -1,16 +1,15 @@
 {
- "passage": "2026-11-18T22:48:35+00:00",
+ "passage": "2026-11-18T23:00:29+00:00",
  "mis_a_jour": 10,
  "disponibles": 34,
  "total": 35,
- "en_retard": 25,
+ "en_retard": 15,
  "arret": null,
  "erreurs": [
-  "LTUR: HTTP Error 429: Too Many Requests",
-  "CW8.PA: HTTP Error 429: Too Many Requests",
-  "PAASI.PA: HTTP Error 429: Too Many Requests",
-  "XOP: HTTP Error 429: Too Many Requests",
-  "PL=F: HTTP Error 429: Too Many Requests"
+  "LTUR: ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
+  "SI=F: HTTP Error 429: Too Many Requests",
+  "TLT: HTTP Error 429: Too Many Requests",
+  "AWAT.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": [
   "LTUR"
