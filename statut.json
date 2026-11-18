@@ -1,16 +1,14 @@
 {
- "passage": "2026-11-18T23:11:42+00:00",
- "mis_a_jour": 10,
+ "passage": "2026-11-18T23:20:58+00:00",
+ "mis_a_jour": 11,
  "disponibles": 34,
  "total": 35,
- "en_retard": 5,
+ "en_retard": 1,
  "arret": null,
  "erreurs": [
   "LTUR: ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "SI=F: HTTP Error 429: Too Many Requests",
-  "XFVT.DE: HTTP Error 429: Too Many Requests",
-  "BZ=F: HTTP Error 429: Too Many Requests",
-  "ETH-USD: HTTP Error 429: Too Many Requests"
+  "SIL: HTTP Error 429: Too Many Requests",
+  "EURUSD=X: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": [
   "LTUR"
