@@ -89,6 +89,26 @@
 </div>
 </section>
 
+<section id="size-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-calculator text-indigo-400 mr-2"></i>Taille de la position à acheter</h3>
+<p class="text-xs text-slate-400 mt-1">Taille de position = perte acceptée ÷ (cours d'achat − cours du stop loss). Saisissez les 3 valeurs : le résultat se calcule seul. Les frais de courtage ne sont pas inclus.</p>
+<div class="grid md:grid-cols-3 gap-4 mt-4">
+<label class="block"><span class="text-xs text-slate-400">Cours d'achat</span>
+<input id="sz-entry" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 8,28" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></label>
+<label class="block"><span class="text-xs text-slate-400">Cours du stop loss</span>
+<input id="sz-stop" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 7,80" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></label>
+<label class="block"><span class="text-xs text-slate-400">Perte acceptée (€)</span>
+<input id="sz-loss" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 200" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></label>
+</div>
+<div id="sz-msg" class="text-xs text-slate-400 mt-4">Renseignez le cours d'achat, le cours du stop loss et la perte acceptée.</div>
+<div id="sz-result" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 hidden">
+<div class="bg-slate-900/60 rounded-xl p-4 border border-indigo-500/40"><div class="text-xs text-slate-400">Taille de la position</div><div id="sz-qty" class="text-2xl font-bold text-indigo-300">—</div><div id="sz-qty-note" class="text-[11px] text-slate-500 mt-1"></div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Montant à investir</div><div id="sz-amount" class="text-2xl font-bold">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Perte si le stop est touché</div><div id="sz-real" class="text-2xl font-bold text-rose-400">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Distance au stop</div><div id="sz-dist" class="text-2xl font-bold">—</div><div id="sz-dist-note" class="text-[11px] text-slate-500 mt-1"></div></div>
+</div>
+</section>
+
 <section id="products-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
 <h3 class="text-lg font-bold"><i class="fa-solid fa-piggy-bank text-indigo-400 mr-2"></i>Produits recommandés · capitalisation · frais les plus bas</h3>
 <p class="text-xs text-slate-400 mt-1">Pour les actifs retenus dans votre versement. TER = frais annuels. Relevés juillet–octobre 2026 (émetteurs, justETF, presse spécialisée) : les sources divergent parfois de quelques centièmes — vérifiez le DIC/KID avant tout achat. Information générale, pas un conseil en investissement personnalisé.</p>
@@ -822,7 +842,32 @@ function nextDecision(){
 
 $("refreshBtn").addEventListener("click",()=>refresh(true));
 
+// ───────── Calculateur : taille de la position selon la perte acceptée ─────────
+function initSizing(){
+  const num=id=>{ const t=($(id).value||"").replace(/\s/g,"").replace(",","."); return t===""?null:Number(t); };
+  const eur=v=>v.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+  const msg=(t,bad)=>{ const m=$("sz-msg"); m.className="text-xs mt-4 "+(bad?"text-rose-300":"text-slate-400"); m.textContent=t; $("sz-result").classList.add("hidden"); };
+  const calc=()=>{
+    const e=num("sz-entry"), st=num("sz-stop"), L=num("sz-loss");
+    if(e===null||st===null||L===null){ msg("Renseignez le cours d'achat, le cours du stop loss et la perte acceptée."); return; }
+    if([e,st,L].some(v=>!isFinite(v))){ msg("Valeur non numérique : utilisez des chiffres (la virgule est acceptée).",true); return; }
+    if(e<=0||st<=0||L<=0){ msg("Les trois valeurs doivent être supérieures à 0.",true); return; }
+    if(st>=e){ msg("Le stop loss doit être inférieur au cours d'achat (position acheteuse).",true); return; }
+    const risk=e-st, exact=L/risk, qty=Math.floor(exact+1e-9);
+    if(qty<1){ msg("Perte acceptée trop faible : même 1 titre perdrait "+eur(risk)+" au stop. Augmentez la perte acceptée ou rapprochez le stop.",true); return; }
+    $("sz-msg").className="hidden"; $("sz-result").classList.remove("hidden");
+    $("sz-qty").textContent=qty.toLocaleString("fr-FR")+" titre"+(qty>1?"s":"");
+    $("sz-qty-note").textContent="= "+eur(L)+" ÷ "+eur(risk)+" par titre"+(exact-qty>1e-9?" (arrondi à l'entier inférieur : "+exact.toLocaleString("fr-FR",{maximumFractionDigits:2})+")":"");
+    $("sz-amount").textContent=eur(qty*e);
+    $("sz-real").textContent="− "+eur(qty*risk);
+    $("sz-dist").textContent=(risk/e*100).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" %";
+    $("sz-dist-note").textContent="perte par titre : "+eur(risk);
+  };
+  ["sz-entry","sz-stop","sz-loss"].forEach(id=>$(id).addEventListener("input",calc));
+}
+
 initPositions();
+initSizing();
 refresh();
 setInterval(()=>refresh(),600*1000);   // recharge les cours toutes les 10 minutes (data.js est mis à jour par GitHub Actions)
 </script>
