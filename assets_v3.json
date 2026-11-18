@@ -48,8 +48,8 @@
   },
   {
    "id": "GOLD",
-   "ticker": "XAUUSD=X",
-   "name": "Or – cours spot (USD converti en EUR)",
+   "ticker": "GLD",
+   "name": "Or",
    "currency": "USD",
    "proxy": true,
    "alt": [
@@ -137,15 +137,10 @@
   },
   {
    "id": "LTUR",
-   "ticker": "LTUR.PA",
+   "ticker": "LTUR",
    "name": "MSCI Turkey UCITS – LTUR (LU1900067601)",
    "currency": "EUR",
    "class": "TURKEY",
-   "alt": [
-    "TUR.PA",
-    "LTUR.MI",
-    "LTUR.DE"
-   ],
    "category": "ACT_SEC"
   },
   {
