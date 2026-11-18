@@ -1,14 +1,16 @@
 {
- "passage": "2026-11-18T15:56:34+00:00",
+ "passage": "2026-11-18T16:08:26+00:00",
  "mis_a_jour": 10,
  "disponibles": 34,
  "total": 35,
- "en_retard": 3,
+ "en_retard": 1,
  "arret": null,
  "erreurs": [
   "LTUR: ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "BZ=F: HTTP Error 429: Too Many Requests",
-  "NRJC.PA: HTTP Error 429: Too Many Requests"
+  "NRJC.PA: HTTP Error 429: Too Many Requests",
+  "SIL: HTTP Error 429: Too Many Requests",
+  "EEM: HTTP Error 429: Too Many Requests",
+  "CW8.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": [
   "LTUR"
