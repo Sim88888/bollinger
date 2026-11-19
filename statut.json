@@ -1,13 +1,15 @@
 {
- "passage": "2026-11-19T11:54:56+00:00",
- "mis_a_jour": 12,
+ "passage": "2026-11-19T12:04:00+00:00",
+ "mis_a_jour": 4,
  "disponibles": 36,
  "total": 36,
- "en_retard": 13,
- "arret": null,
+ "en_retard": 9,
+ "arret": "Yahoo refuse cette adresse IP",
  "erreurs": [
-  "D5BI.DE: HTTP Error 429: Too Many Requests",
-  "AWAT.PA: HTTP Error 429: Too Many Requests"
+  "GLD: HTTP Error 429: Too Many Requests",
+  "AAXJ: HTTP Error 429: Too Many Requests",
+  "TLT: HTTP Error 429: Too Many Requests",
+  "XFVT.DE: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
