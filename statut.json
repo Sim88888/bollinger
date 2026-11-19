@@ -1,13 +1,15 @@
 {
- "passage": "2026-11-19T03:40:27+00:00",
- "mis_a_jour": 10,
+ "passage": "2026-11-19T03:53:02+00:00",
+ "mis_a_jour": 9,
  "disponibles": 34,
  "total": 35,
- "en_retard": 25,
+ "en_retard": 16,
  "arret": null,
  "erreurs": [
   "LTUR: ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "XOP: HTTP Error 429: Too Many Requests"
+  "XOP: HTTP Error 429: Too Many Requests",
+  "TLT: HTTP Error 429: Too Many Requests",
+  "AAXJ: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": [
   "LTUR"
