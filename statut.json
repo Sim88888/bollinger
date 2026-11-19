@@ -1,6 +1,6 @@
 {
- "passage": "2026-11-19T04:02:04+00:00",
- "mis_a_jour": 4,
+ "passage": "2026-11-19T04:09:55+00:00",
+ "mis_a_jour": 0,
  "disponibles": 34,
  "total": 35,
  "en_retard": 12,
@@ -8,8 +8,7 @@
  "erreurs": [
   "LTUR: HTTP Error 429: Too Many Requests",
   "NRJC.PA: HTTP Error 429: Too Many Requests",
-  "EEM: HTTP Error 429: Too Many Requests",
-  "MAGS: HTTP Error 429: Too Many Requests"
+  "EEM: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": [
   "LTUR"
