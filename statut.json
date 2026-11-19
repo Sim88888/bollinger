@@ -1,13 +1,15 @@
 {
- "passage": "2026-11-19T23:24:19+00:00",
- "mis_a_jour": 12,
+ "passage": "2026-11-19T23:36:12+00:00",
+ "mis_a_jour": 11,
  "disponibles": 36,
  "total": 36,
- "en_retard": 13,
+ "en_retard": 2,
  "arret": null,
  "erreurs": [
-  "LIT: HTTP Error 429: Too Many Requests",
-  "EURUSD=X: HTTP Error 429: Too Many Requests"
+  "AWAT.PA: HTTP Error 429: Too Many Requests",
+  "VFEA.DE: HTTP Error 429: Too Many Requests",
+  "BZ=F: HTTP Error 429: Too Many Requests",
+  "CW8.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
