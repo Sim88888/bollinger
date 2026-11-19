@@ -1,15 +1,15 @@
 {
- "passage": "2026-11-19T03:53:02+00:00",
- "mis_a_jour": 9,
+ "passage": "2026-11-19T04:02:04+00:00",
+ "mis_a_jour": 4,
  "disponibles": 34,
  "total": 35,
- "en_retard": 16,
- "arret": null,
+ "en_retard": 12,
+ "arret": "Yahoo refuse cette adresse IP",
  "erreurs": [
-  "LTUR: ticker inconnu (404) {\"chart\":{\"result\":null,\"error\":{\"code\":\"Not Found\",\"description\":\"No data found, symbol may be delisted\"}}}",
-  "XOP: HTTP Error 429: Too Many Requests",
-  "TLT: HTTP Error 429: Too Many Requests",
-  "AAXJ: HTTP Error 429: Too Many Requests"
+  "LTUR: HTTP Error 429: Too Many Requests",
+  "NRJC.PA: HTTP Error 429: Too Many Requests",
+  "EEM: HTTP Error 429: Too Many Requests",
+  "MAGS: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": [
   "LTUR"
