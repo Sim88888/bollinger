@@ -1,13 +1,12 @@
 {
- "passage": "2026-11-19T12:12:46+00:00",
- "mis_a_jour": 12,
+ "passage": "2026-11-19T15:43:35+00:00",
+ "mis_a_jour": 11,
  "disponibles": 36,
  "total": 36,
- "en_retard": 0,
+ "en_retard": 25,
  "arret": null,
  "erreurs": [
-  "ETH-USD: HTTP Error 429: Too Many Requests",
-  "HG=F: HTTP Error 429: Too Many Requests"
+  "PAASI.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
