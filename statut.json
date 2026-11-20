@@ -1,14 +1,15 @@
 {
- "passage": "2026-11-20T22:37:35+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-20T22:48:49+00:00",
+ "mis_a_jour": 12,
  "disponibles": 36,
  "total": 36,
- "en_retard": 14,
+ "en_retard": 2,
  "arret": null,
  "erreurs": [
-  "AWAT.PA: HTTP Error 429: Too Many Requests",
-  "TLT: HTTP Error 429: Too Many Requests",
-  "ETH-USD: HTTP Error 429: Too Many Requests"
+  "ETH-USD: HTTP Error 429: Too Many Requests",
+  "VFEA.DE: HTTP Error 429: Too Many Requests",
+  "GDX: HTTP Error 429: Too Many Requests",
+  "PAASI.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
