@@ -1,13 +1,16 @@
 {
- "passage": "2026-11-20T12:21:46+00:00",
+ "passage": "2026-11-20T15:28:28+00:00",
  "mis_a_jour": 11,
  "disponibles": 36,
  "total": 36,
- "en_retard": 0,
+ "en_retard": 25,
  "arret": null,
  "erreurs": [
-  "GDX: HTTP Error 429: Too Many Requests",
-  "IUSN.DE: HTTP Error 429: Too Many Requests"
+  "IUSN.DE: HTTP Error 429: Too Many Requests",
+  "^GSPC: HTTP Error 429: Too Many Requests",
+  "GOAI.PA: HTTP Error 429: Too Many Requests",
+  "BX4.PA: HTTP Error 429: Too Many Requests",
+  "SIL: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
