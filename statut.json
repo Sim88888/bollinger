@@ -1,15 +1,15 @@
 {
- "passage": "2026-11-21T16:21:15+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-21T16:31:13+00:00",
+ "mis_a_jour": 7,
  "disponibles": 36,
  "total": 36,
- "en_retard": 25,
- "arret": null,
+ "en_retard": 18,
+ "arret": "Yahoo refuse cette adresse IP",
  "erreurs": [
-  "EUNM.DE: HTTP Error 429: Too Many Requests",
-  "GLD: HTTP Error 429: Too Many Requests",
-  "HG=F: HTTP Error 429: Too Many Requests",
-  "VFEA.DE: HTTP Error 429: Too Many Requests"
+  "SIL: HTTP Error 429: Too Many Requests",
+  "^GSPC: HTTP Error 429: Too Many Requests",
+  "LTUR.DE: HTTP Error 429: Too Many Requests",
+  "MAGS: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
