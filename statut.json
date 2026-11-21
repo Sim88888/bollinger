@@ -1,14 +1,12 @@
 {
- "passage": "2026-11-21T03:41:18+00:00",
- "mis_a_jour": 12,
+ "passage": "2026-11-21T03:51:16+00:00",
+ "mis_a_jour": 13,
  "disponibles": 36,
  "total": 36,
- "en_retard": 1,
+ "en_retard": 0,
  "arret": null,
  "erreurs": [
-  "LTUR.DE: HTTP Error 429: Too Many Requests",
-  "GOAI.PA: HTTP Error 429: Too Many Requests",
-  "MAGS: HTTP Error 429: Too Many Requests"
+  "PA=F: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
