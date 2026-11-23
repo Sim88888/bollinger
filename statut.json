@@ -1,13 +1,16 @@
 {
- "passage": "2026-11-23T18:25:27+00:00",
- "mis_a_jour": 10,
+ "passage": "2026-11-23T18:38:42+00:00",
+ "mis_a_jour": 8,
  "disponibles": 36,
  "total": 36,
- "en_retard": 8,
+ "en_retard": 2,
  "arret": null,
  "erreurs": [
-  "^GSPC: HTTP Error 429: Too Many Requests",
-  "IDTP.L: HTTP Error 429: Too Many Requests"
+  "IDTP.L: HTTP Error 429: Too Many Requests",
+  "IEUS: HTTP Error 429: Too Many Requests",
+  "GDX: HTTP Error 429: Too Many Requests",
+  "GLD: HTTP Error 429: Too Many Requests",
+  "VFEA.DE: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
