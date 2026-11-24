@@ -1,13 +1,14 @@
 {
- "passage": "2026-11-24T06:27:10+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-24T06:37:32+00:00",
+ "mis_a_jour": 12,
  "disponibles": 36,
  "total": 36,
- "en_retard": 16,
+ "en_retard": 4,
  "arret": null,
  "erreurs": [
-  "URA: HTTP Error 429: Too Many Requests",
-  "MAGS: HTTP Error 429: Too Many Requests"
+  "BTC-EUR: HTTP Error 429: Too Many Requests",
+  "PA=F: HTTP Error 429: Too Many Requests",
+  "NCLR.L: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
