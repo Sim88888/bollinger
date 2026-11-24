@@ -1,12 +1,15 @@
 {
- "passage": "2026-11-24T04:16:06+00:00",
- "mis_a_jour": 17,
+ "passage": "2026-11-24T04:29:05+00:00",
+ "mis_a_jour": 10,
  "disponibles": 36,
  "total": 36,
- "en_retard": 15,
+ "en_retard": 5,
  "arret": null,
  "erreurs": [
-  "XFVT.DE: HTTP Error 429: Too Many Requests"
+  "AWAT.PA: HTTP Error 429: Too Many Requests",
+  "TLT: HTTP Error 429: Too Many Requests",
+  "NRJC.PA: HTTP Error 429: Too Many Requests",
+  "BZ=F: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
