@@ -1,15 +1,15 @@
 {
- "passage": "2026-11-24T18:04:30+00:00",
+ "passage": "2026-11-24T18:16:41+00:00",
  "mis_a_jour": 10,
  "disponibles": 36,
  "total": 36,
- "en_retard": 14,
+ "en_retard": 4,
  "arret": null,
  "erreurs": [
-  "NRJC.PA: HTTP Error 429: Too Many Requests",
-  "PL=F: HTTP Error 429: Too Many Requests",
-  "TLT: HTTP Error 429: Too Many Requests",
-  "PAASI.PA: HTTP Error 429: Too Many Requests"
+  "PA=F: HTTP Error 429: Too Many Requests",
+  "AWAT.PA: HTTP Error 429: Too Many Requests",
+  "BX4.PA: HTTP Error 429: Too Many Requests",
+  "XOP: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
