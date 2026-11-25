@@ -1,14 +1,10 @@
 {
- "passage": "2026-11-25T13:12:11+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-25T13:18:47+00:00",
+ "mis_a_jour": 14,
  "disponibles": 36,
  "total": 36,
- "en_retard": 13,
+ "en_retard": 0,
  "arret": null,
- "erreurs": [
-  "NCLR.L: HTTP Error 429: Too Many Requests",
-  "^GSPC: HTTP Error 429: Too Many Requests",
-  "TLT: HTTP Error 429: Too Many Requests"
- ],
+ "erreurs": [],
  "sans_cours": []
 }
