@@ -1,12 +1,14 @@
 {
- "passage": "2026-11-25T17:19:38+00:00",
+ "passage": "2026-11-25T17:31:02+00:00",
  "mis_a_jour": 11,
  "disponibles": 36,
  "total": 36,
- "en_retard": 19,
+ "en_retard": 8,
  "arret": null,
  "erreurs": [
-  "PL=F: HTTP Error 429: Too Many Requests"
+  "PA=F: HTTP Error 429: Too Many Requests",
+  "^GSPC: HTTP Error 429: Too Many Requests",
+  "XOP: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
