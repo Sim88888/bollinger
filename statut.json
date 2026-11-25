@@ -1,12 +1,15 @@
 {
- "passage": "2026-11-25T01:59:01+00:00",
- "mis_a_jour": 18,
+ "passage": "2026-11-25T02:10:15+00:00",
+ "mis_a_jour": 12,
  "disponibles": 36,
  "total": 36,
- "en_retard": 6,
+ "en_retard": 0,
  "arret": null,
  "erreurs": [
-  "GDX: HTTP Error 429: Too Many Requests"
+  "BZ=F: HTTP Error 429: Too Many Requests",
+  "VFEA.DE: HTTP Error 429: Too Many Requests",
+  "LTUR.DE: HTTP Error 429: Too Many Requests",
+  "MAGS: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
