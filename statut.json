@@ -1,14 +1,14 @@
 {
- "passage": "2026-11-26T16:52:46+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-26T17:03:12+00:00",
+ "mis_a_jour": 12,
  "disponibles": 36,
  "total": 36,
- "en_retard": 25,
+ "en_retard": 13,
  "arret": null,
  "erreurs": [
-  "AWAT.PA: HTTP Error 429: Too Many Requests",
-  "NRJC.PA: HTTP Error 429: Too Many Requests",
-  "GDX: HTTP Error 429: Too Many Requests"
+  "GDX: HTTP Error 429: Too Many Requests",
+  "IUSN.DE: HTTP Error 429: Too Many Requests",
+  "TLT: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
