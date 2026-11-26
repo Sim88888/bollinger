@@ -1,16 +1,12 @@
 {
- "passage": "2026-11-26T04:45:21+00:00",
- "mis_a_jour": 10,
+ "passage": "2026-11-26T04:53:39+00:00",
+ "mis_a_jour": 12,
  "disponibles": 36,
  "total": 36,
- "en_retard": 6,
+ "en_retard": 1,
  "arret": null,
  "erreurs": [
-  "CW8.PA: HTTP Error 429: Too Many Requests",
-  "AAXJ: HTTP Error 429: Too Many Requests",
-  "MAGS: HTTP Error 429: Too Many Requests",
-  "URA: HTTP Error 429: Too Many Requests",
-  "XFVT.DE: HTTP Error 429: Too Many Requests"
+  "BTC-EUR: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
