@@ -1,14 +1,16 @@
 {
- "passage": "2026-11-26T04:18:43+00:00",
- "mis_a_jour": 9,
+ "passage": "2026-11-26T04:31:48+00:00",
+ "mis_a_jour": 11,
  "disponibles": 36,
  "total": 36,
- "en_retard": 27,
+ "en_retard": 16,
  "arret": null,
  "erreurs": [
-  "SI=F: HTTP Error 429: Too Many Requests",
   "PAASI.PA: HTTP Error 429: Too Many Requests",
-  "TLT: HTTP Error 429: Too Many Requests"
+  "TLT: HTTP Error 429: Too Many Requests",
+  "SIL: HTTP Error 429: Too Many Requests",
+  "^GSPC: HTTP Error 429: Too Many Requests",
+  "PL=F: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
