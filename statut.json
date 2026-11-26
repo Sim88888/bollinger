@@ -1,15 +1,15 @@
 {
- "passage": "2026-11-26T13:00:57+00:00",
- "mis_a_jour": 6,
+ "passage": "2026-11-26T13:12:48+00:00",
+ "mis_a_jour": 11,
  "disponibles": 36,
  "total": 36,
- "en_retard": 18,
- "arret": "Yahoo refuse cette adresse IP",
+ "en_retard": 7,
+ "arret": null,
  "erreurs": [
-  "AWAT.PA: HTTP Error 429: Too Many Requests",
-  "VFEA.DE: HTTP Error 429: Too Many Requests",
   "IDTP.L: HTTP Error 429: Too Many Requests",
-  "AAXJ: HTTP Error 429: Too Many Requests"
+  "AAXJ: HTTP Error 429: Too Many Requests",
+  "EEM: HTTP Error 429: Too Many Requests",
+  "ETH-USD: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
