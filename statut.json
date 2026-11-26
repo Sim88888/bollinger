@@ -1,13 +1,16 @@
 {
- "passage": "2026-11-26T01:14:00+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-26T01:26:08+00:00",
+ "mis_a_jour": 12,
  "disponibles": 36,
  "total": 36,
- "en_retard": 18,
+ "en_retard": 6,
  "arret": null,
  "erreurs": [
-  "IEUS: HTTP Error 429: Too Many Requests",
-  "PL=F: HTTP Error 429: Too Many Requests"
+  "PL=F: HTTP Error 429: Too Many Requests",
+  "AWAT.PA: HTTP Error 429: Too Many Requests",
+  "LTUR.DE: HTTP Error 429: Too Many Requests",
+  "CW8.PA: HTTP Error 429: Too Many Requests",
+  "AAXJ: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
