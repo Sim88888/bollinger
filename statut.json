@@ -1,12 +1,16 @@
 {
- "passage": "2026-11-26T04:53:39+00:00",
+ "passage": "2026-11-26T12:43:42+00:00",
  "mis_a_jour": 12,
  "disponibles": 36,
  "total": 36,
- "en_retard": 1,
+ "en_retard": 24,
  "arret": null,
  "erreurs": [
-  "BTC-EUR: HTTP Error 429: Too Many Requests"
+  "BRK-B: HTTP Error 429: Too Many Requests",
+  "IEUS: HTTP Error 429: Too Many Requests",
+  "GOAI.PA: HTTP Error 429: Too Many Requests",
+  "IUSN.DE: HTTP Error 429: Too Many Requests",
+  "TLT: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
