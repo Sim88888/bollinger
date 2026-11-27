@@ -25,6 +25,7 @@ UAS = [
 BACKOFF = (8, 15, 25)        # attentes (s) après un 429 : au plus 3 essais par actif
 
 class Blocked(Exception): pass
+META = {}     # nom et devise annoncés par Yahoo, par ticker (servent aux actifs ajoutés par le seul ticker)
 
 def _get(url, timeout=20):
     req = urllib.request.Request(url, headers={"User-Agent": random.choice(UAS), "Accept": "application/json,text/plain,*/*",
@@ -43,6 +44,8 @@ def fetch(ticker, rng="2y"):
             c = (ind.get("adjclose") or [{}])[0].get("adjclose") or ind["quote"][0]["close"]
             series = [[t, round(p, 6)] for t, p in zip(q.get("timestamp") or [], c) if p is not None]
             if not series: raise ValueError("aucune donnée")
+            m = q.get("meta") or {}
+            META[ticker] = {"nom": m.get("longName") or m.get("shortName") or "", "cur": m.get("currency") or ""}
             return series
         except urllib.error.HTTPError as e:
             last = e
@@ -129,11 +132,15 @@ def main():
             except ValueError:                               # ticker inconnu : on essaie les tickers de secours
                 for alt in alts.get(t, []):
                     try:
-                        series = fetch(alt); print("      (secours %s utilisé pour %s)" % (alt, t)); break
+                        series = fetch(alt); META[t] = META.get(alt, {}); print("      (secours %s utilisé pour %s)" % (alt, t)); break
                     except ValueError: continue
                 else: raise
             mode = "complet"
         data[t] = {"series": series, "ts": int(time.time()), "full_ts": int(time.time()) if mode == "complet" else int(full_ts)}
+        mt = META.get(t) or {}
+        for k in ("nom", "cur"):
+            v = mt.get(k) or old.get(k)
+            if v: data[t][k] = v
         return mode
 
     def failed(t, e):

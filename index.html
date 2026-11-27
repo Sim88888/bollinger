@@ -150,25 +150,27 @@ Bandes de Bollinger calculées sur les <b>clôtures de semaine</b> (dernière s�
   </div>
   <div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4">
     <div class="font-semibold text-slate-200 mb-3"><i class="fa-solid fa-circle-plus text-emerald-400 mr-2"></i>Ajouter un actif</div>
-    <div class="grid sm:grid-cols-2 gap-3 text-sm">
-      <div><label class="text-xs text-slate-400" for="mg-ticker">Ticker Yahoo Finance *</label>
-        <input id="mg-ticker" type="text" placeholder="ex. VWCE.DE, NVDA, BTC-USD" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
-      <div><label class="text-xs text-slate-400" for="mg-id">Identifiant court *</label>
-        <input id="mg-id" type="text" placeholder="ex. VWCE" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 font-mono"></div>
-      <div class="sm:col-span-2"><label class="text-xs text-slate-400" for="mg-name">Nom affiché *</label>
-        <input id="mg-name" type="text" placeholder="ex. Vanguard FTSE All-World – VWCE" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
-      <div><label class="text-xs text-slate-400" for="mg-cur">Devise de cotation</label>
-        <select id="mg-cur" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"><option value="EUR">EUR</option><option value="USD">USD (converti en EUR)</option></select></div>
-      <div><label class="text-xs text-slate-400" for="mg-cat">Catégorie</label>
-        <select id="mg-cat" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></select></div>
-      <div><label class="text-xs text-slate-400" for="mg-class">Classe d'actifs (un seul actif acheté par classe)</label>
-        <select id="mg-class" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></select></div>
-      <div id="mg-newclass-box" class="hidden"><label class="text-xs text-slate-400" for="mg-newclass">Nom de la nouvelle classe</label>
-        <input id="mg-newclass" type="text" placeholder="ex. Santé" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
-      <label class="sm:col-span-2 flex items-center gap-2 text-xs text-slate-400"><input id="mg-us" type="checkbox"> ETF coté aux États-Unis (en principe non accessible aux particuliers de l'UE : sert de signal)</label>
+    <div class="text-sm">
+      <label class="text-xs text-slate-400" for="mg-ticker">Ticker Yahoo Finance</label>
+      <input id="mg-ticker" type="text" placeholder="ex. GOAI.PA, VWCE.DE, NVDA, BTC-USD" autocomplete="off" autocapitalize="characters" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 font-mono">
     </div>
+    <details class="mt-3 text-sm">
+      <summary class="cursor-pointer text-xs text-slate-400 hover:text-slate-200">Options (facultatif)</summary>
+      <div class="grid sm:grid-cols-2 gap-3 mt-3">
+        <div class="sm:col-span-2"><label class="text-xs text-slate-400" for="mg-name">Nom affiché (sinon : nom donné par Yahoo)</label>
+          <input id="mg-name" type="text" placeholder="ex. Vanguard FTSE All-World – VWCE" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
+        <div><label class="text-xs text-slate-400" for="mg-id">Identifiant court (sinon : début du ticker)</label>
+          <input id="mg-id" type="text" placeholder="ex. VWCE" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 font-mono"></div>
+        <div><label class="text-xs text-slate-400" for="mg-cat">Catégorie</label>
+          <select id="mg-cat" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></select></div>
+        <div><label class="text-xs text-slate-400" for="mg-class">Classe d'actifs (un seul actif acheté par classe)</label>
+          <select id="mg-class" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"><option value="">Une classe à part (par défaut)</option></select></div>
+        <label class="flex items-end gap-2 text-xs text-slate-400 pb-2"><input id="mg-us" type="checkbox"> ETF coté aux États-Unis (non accessible aux particuliers de l'UE : sert de signal)</label>
+      </div>
+    </details>
     <button id="mg-add-btn" type="button" class="mt-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-circle-plus mr-1"></i>Ajouter l'actif</button>
-    <div class="text-xs text-slate-500 mt-3">La catégorie sert à regrouper les actifs à l'affichage. Le ticker doit exister sur Yahoo Finance : sinon l'actif apparaîtra avec « Pas de cours ».</div>
+    <div class="text-xs text-slate-500 mt-3">Tape uniquement le ticker : le nom est récupéré automatiquement chez Yahoo au prochain passage. Le ticker doit exister sur Yahoo Finance (finance.yahoo.com), sinon l'actif apparaîtra avec « Pas de cours ».</div>
+
   </div>
 </div>
 <div id="mg-pending" class="hidden"></div>
@@ -389,7 +391,8 @@ async function refresh(force){
     for(let i=0;i<all.length;i++){
       const item=all[i], res=results[i];
       if(res.status==="fulfilled"){
-        records.push({...item,series:res.value,ts:(BATCH[item.ticker]||{}).ts});
+        const bd=BATCH[item.ticker]||{};
+        records.push({...item,name:(item.auto&&bd.nom)?bd.nom:item.name,series:res.value,ts:bd.ts});
       }else{
         records.push({...item,error:res.reason?.message||"erreur"});
       }
@@ -733,8 +736,8 @@ function mutAdd(cfg,a){
   if(all.some(x=>x.id.toUpperCase()===a.id.toUpperCase())) throw new Error(`L'identifiant « ${a.id} » existe déjà.`);
   if(all.some(x=>x.ticker.toUpperCase()===a.ticker.toUpperCase())) throw new Error(`Le ticker « ${a.ticker} » est déjà suivi.`);
   cfg.classes=cfg.classes||{};
-  if(a.newClassLabel&&!cfg.classes[a.cls]) cfg.classes[a.cls]=a.newClassLabel;
   const o={id:a.id,ticker:a.ticker,name:a.name,currency:a.currency,class:a.cls,category:a.category};
+  if(a.auto) o.auto=true;
   if(a.us) o.us=true;
   cfg.offensive.push(o);
 }
@@ -760,7 +763,7 @@ function renderPending(){
 }
 // applique la modification sur une copie de la liste, la télécharge et l'applique à la page (session en cours)
 async function applyLocal(mutate,summary){
-  if(!CONFIG.categories||!CONFIG.regles) throw new Error("La liste d'actifs n'a pas pu être chargée depuis assets_v3.json : rechargez la page (Ctrl+F5) avant de la modifier.");
+  if(!CONFIG.categories||!CONFIG.bollinger) throw new Error("La liste d'actifs n'a pas pu être chargée depuis assets_v3.json : rechargez la page (Ctrl+F5) avant de la modifier.");
   const cfg=JSON.parse(JSON.stringify(CONFIG));
   mutate(cfg);                                   // validation : lève une erreur avant tout téléchargement
   window.__cfgOverride=cfg; CONFIG=cfg; mgChanges.push(summary);
@@ -783,21 +786,16 @@ function renderManager(){
   }});
   fillSelect($("mg-cat"),{sig:JSON.stringify(Object.entries(cats()).map(([k,v])=>[k,v.short||v.label])),build:sel=>{
     Object.entries(cats()).forEach(([k,v])=>{ const o=document.createElement("option"); o.value=k; o.textContent=v.label||v.short||k; sel.appendChild(o); });
+    if(cats().ACT_SEC) sel.value="ACT_SEC";
   }});
   const classes=(CONFIG.classes&&Object.keys(CONFIG.classes).length)?CONFIG.classes:DEFAULT_CLASS_LABEL;
   fillSelect($("mg-class"),{sig:JSON.stringify(classes),build:sel=>{
+    const d0=document.createElement("option"); d0.value=""; d0.textContent="Une classe à part (par défaut)"; sel.appendChild(d0);
     Object.entries(classes).sort((a,b)=>a[1].localeCompare(b[1],"fr")).forEach(([k,v])=>{ const o=document.createElement("option"); o.value=k; o.textContent=v; sel.appendChild(o); });
-    const n=document.createElement("option"); n.value="__new"; n.textContent="➕ Nouvelle classe…"; sel.appendChild(n);
   }});
   if(managerReady) return;
   managerReady=true;
   try{ ["canaris_gh_token","canaris_gh_repo"].forEach(k=>localStorage.removeItem(k)); }catch(e){}   // anciens réglages (jeton GitHub) : effacés de ce navigateur
-  $("mg-class").addEventListener("change",()=>$("mg-newclass-box").classList.toggle("hidden",$("mg-class").value!=="__new"));
-  $("mg-id").addEventListener("input",()=>{ $("mg-id").dataset.touched="1"; });
-  $("mg-ticker").addEventListener("input",()=>{
-    if($("mg-id").dataset.touched==="1") return;
-    $("mg-id").value=$("mg-ticker").value.split(/[.=\-^]/)[0].toUpperCase().replace(/[^A-Z0-9_]/g,"");
-  });
   const busy=b=>{ $("mg-add-btn").disabled=b; $("mg-del-btn").disabled=b; };
   $("mg-del-btn").addEventListener("click",async()=>{
     const id=$("mg-del").value;
@@ -810,22 +808,22 @@ function renderManager(){
     busy(false);
   });
   $("mg-add-btn").addEventListener("click",async()=>{
-    const ticker=$("mg-ticker").value.trim(), id=$("mg-id").value.trim().toUpperCase(), name=$("mg-name").value.replace(/[<>]/g,"").trim();
-    let cls=$("mg-class").value, newLabel="";
-    if(!ticker||!id||!name){ mgMsg("Renseignez au moins le ticker, l'identifiant et le nom.","err"); return; }
-    if(/\s/.test(ticker)){ mgMsg("Le ticker ne doit pas contenir d'espace.","err"); return; }
-    if(!/^[A-Z0-9_]+$/.test(id)){ mgMsg("L'identifiant ne peut contenir que des lettres, chiffres et _.","err"); return; }
-    if(cls==="__new"){
-      newLabel=$("mg-newclass").value.replace(/[<>]/g,"").trim();
-      if(!newLabel){ mgMsg("Saisissez le nom de la nouvelle classe.","err"); return; }
-      cls=slug(newLabel); if(!cls){ mgMsg("Nom de classe invalide.","err"); return; }
-    }
-    const a={ticker,id,name,currency:$("mg-cur").value,category:$("mg-cat").value,cls,newClassLabel:newLabel,us:$("mg-us").checked};
+    const ticker=$("mg-ticker").value.trim().toUpperCase();
+    if(!ticker){ mgMsg("Saisis le ticker Yahoo de l'actif (ex. GOAI.PA).","err"); return; }
+    if(/\s/.test(ticker)||!/^[A-Z0-9.=^\-]+$/.test(ticker)){ mgMsg("Ticker invalide : lettres, chiffres et . = ^ - uniquement, sans espace.","err"); return; }
+    const all=[...(CONFIG.canaries||[]),...(CONFIG.offensive||[])];
+    const dup=all.find(x=>x.ticker.toUpperCase()===ticker);
+    if(dup){ mgMsg(`« ${esc(ticker)} » est déjà suivi (${esc(dup.id)}) : rien à ajouter.`,"err"); return; }
+    let id=$("mg-id").value.trim().toUpperCase().replace(/[^A-Z0-9_]/g,"");
+    if(!id){ id=ticker.replace(/^\^/,"").split(/[.=\-]/)[0].replace(/[^A-Z0-9_]/g,"")||"ACTIF"; }
+    if(!$("mg-id").value.trim()){ const base=id; let n=2; while(all.some(x=>x.id.toUpperCase()===id)) id=base+(n++); }
+    const typed=$("mg-name").value.replace(/[<>]/g,"").trim();
+    const a={ticker,id,name:typed||ticker,auto:!typed,currency:"EUR",category:$("mg-cat").value||"ACT_SEC",cls:$("mg-class").value||id,newClassLabel:"",us:$("mg-us").checked};
     busy(true);
     try{
       await applyLocal(cfg=>mutAdd(cfg,a),`Ajout de ${id} (${ticker})`);
       mgMsg(MG_DONE(`« ${esc(id)} » (${esc(ticker)}) ajouté.`),"ok");
-      ["mg-ticker","mg-id","mg-name","mg-newclass"].forEach(k=>$(k).value=""); $("mg-id").dataset.touched=""; $("mg-us").checked=false;
+      ["mg-ticker","mg-id","mg-name"].forEach(k=>$(k).value=""); $("mg-us").checked=false;
     }catch(e){ mgMsg("❌ "+esc(e.message),"err"); }
     busy(false);
   });
