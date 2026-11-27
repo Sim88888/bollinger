@@ -1,14 +1,12 @@
 {
- "passage": "2026-11-27T16:49:05+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-27T16:57:59+00:00",
+ "mis_a_jour": 12,
  "disponibles": 36,
  "total": 36,
- "en_retard": 14,
+ "en_retard": 2,
  "arret": null,
  "erreurs": [
-  "PA=F: HTTP Error 429: Too Many Requests",
-  "SIL: HTTP Error 429: Too Many Requests",
-  "EUNM.DE: HTTP Error 429: Too Many Requests"
+  "VFEA.DE: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
