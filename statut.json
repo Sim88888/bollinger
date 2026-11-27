@@ -1,14 +1,15 @@
 {
- "passage": "2026-11-27T12:47:57+00:00",
- "mis_a_jour": 3,
+ "passage": "2026-11-27T13:01:37+00:00",
+ "mis_a_jour": 9,
  "disponibles": 36,
  "total": 36,
- "en_retard": 18,
- "arret": "Yahoo refuse cette adresse IP",
+ "en_retard": 9,
+ "arret": null,
  "erreurs": [
-  "BX4.PA: HTTP Error 429: Too Many Requests",
   "IDTP.L: HTTP Error 429: Too Many Requests",
-  "ETH-USD: HTTP Error 429: Too Many Requests"
+  "XOP: HTTP Error 429: Too Many Requests",
+  "SI=F: HTTP Error 429: Too Many Requests",
+  "URA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
