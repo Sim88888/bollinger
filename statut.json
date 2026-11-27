@@ -1,15 +1,13 @@
 {
- "passage": "2026-11-27T13:01:37+00:00",
- "mis_a_jour": 9,
+ "passage": "2026-11-27T16:37:37+00:00",
+ "mis_a_jour": 11,
  "disponibles": 36,
  "total": 36,
- "en_retard": 9,
+ "en_retard": 25,
  "arret": null,
  "erreurs": [
-  "IDTP.L: HTTP Error 429: Too Many Requests",
-  "XOP: HTTP Error 429: Too Many Requests",
-  "SI=F: HTTP Error 429: Too Many Requests",
-  "URA: HTTP Error 429: Too Many Requests"
+  "BRK-B: HTTP Error 429: Too Many Requests",
+  "PA=F: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
