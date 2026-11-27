@@ -1,14 +1,15 @@
 {
- "passage": "2026-11-27T01:27:34+00:00",
- "mis_a_jour": 11,
+ "passage": "2026-11-27T01:40:18+00:00",
+ "mis_a_jour": 10,
  "disponibles": 36,
  "total": 36,
- "en_retard": 2,
+ "en_retard": 0,
  "arret": null,
  "erreurs": [
-  "LTUR.DE: HTTP Error 429: Too Many Requests",
-  "GDX: HTTP Error 429: Too Many Requests",
-  "XOP: HTTP Error 429: Too Many Requests"
+  "XOP: HTTP Error 429: Too Many Requests",
+  "GLD: HTTP Error 429: Too Many Requests",
+  "SI=F: HTTP Error 429: Too Many Requests",
+  "URA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
