@@ -1,12 +1,15 @@
 {
- "passage": "2026-11-27T16:57:59+00:00",
- "mis_a_jour": 12,
+ "passage": "2026-11-27T17:11:27+00:00",
+ "mis_a_jour": 8,
  "disponibles": 36,
  "total": 36,
- "en_retard": 2,
+ "en_retard": 1,
  "arret": null,
  "erreurs": [
-  "VFEA.DE: HTTP Error 429: Too Many Requests"
+  "COMO.PA: HTTP Error 429: Too Many Requests",
+  "URA: HTTP Error 429: Too Many Requests",
+  "GOAI.PA: HTTP Error 429: Too Many Requests",
+  "NRJC.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
