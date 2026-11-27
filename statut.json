@@ -1,14 +1,15 @@
 {
- "passage": "2026-11-27T04:23:23+00:00",
- "mis_a_jour": 12,
+ "passage": "2026-11-27T04:35:19+00:00",
+ "mis_a_jour": 11,
  "disponibles": 36,
  "total": 36,
- "en_retard": 24,
+ "en_retard": 13,
  "arret": null,
  "erreurs": [
-  "GLD: HTTP Error 429: Too Many Requests",
-  "AWAT.PA: HTTP Error 429: Too Many Requests",
-  "PA=F: HTTP Error 429: Too Many Requests"
+  "^GSPC: HTTP Error 429: Too Many Requests",
+  "IUSN.DE: HTTP Error 429: Too Many Requests",
+  "MAGS: HTTP Error 429: Too Many Requests",
+  "EUNM.DE: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
