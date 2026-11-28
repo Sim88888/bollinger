@@ -1,13 +1,17 @@
 {
- "passage": "2026-11-28T04:02:22+00:00",
- "mis_a_jour": 12,
+ "passage": "2026-11-28T04:15:40+00:00",
+ "mis_a_jour": 11,
  "disponibles": 36,
  "total": 36,
- "en_retard": 24,
+ "en_retard": 13,
  "arret": null,
  "erreurs": [
-  "PL=F: HTTP Error 429: Too Many Requests",
-  "TLT: HTTP Error 429: Too Many Requests"
+  "XFVT.DE: HTTP Error 429: Too Many Requests",
+  "MAGS: HTTP Error 429: Too Many Requests",
+  "AAXJ: HTTP Error 429: Too Many Requests",
+  "EUNM.DE: HTTP Error 429: Too Many Requests",
+  "LTUR.DE: HTTP Error 429: Too Many Requests",
+  "ETH-USD: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
