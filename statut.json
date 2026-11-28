@@ -1,17 +1,14 @@
 {
- "passage": "2026-11-28T04:29:25+00:00",
- "mis_a_jour": 10,
+ "passage": "2026-11-28T04:40:02+00:00",
+ "mis_a_jour": 12,
  "disponibles": 36,
  "total": 36,
- "en_retard": 3,
+ "en_retard": 0,
  "arret": null,
  "erreurs": [
-  "XFVT.DE: HTTP Error 429: Too Many Requests",
-  "IUSN.DE: HTTP Error 429: Too Many Requests",
-  "EEM: HTTP Error 429: Too Many Requests",
-  "BTC-EUR: HTTP Error 429: Too Many Requests",
-  "IEUS: HTTP Error 429: Too Many Requests",
-  "PAASI.PA: HTTP Error 429: Too Many Requests"
+  "SI=F: HTTP Error 429: Too Many Requests",
+  "GLD: HTTP Error 429: Too Many Requests",
+  "COMO.PA: HTTP Error 429: Too Many Requests"
  ],
  "sans_cours": []
 }
